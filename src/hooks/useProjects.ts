@@ -14,10 +14,11 @@ export function useProjects() {
     })) as Project[]
   })
 
-  async function createProject(body: Partial<Project>) {
+  async function createProject(body: Partial<Project>): Promise<string | null> {
     const { delivery_count: _dc, clients: _cl, ...insertBody } = body as Project & { delivery_count?: number }
-    await supabase.from('projects').insert(insertBody)
+    const { data } = await supabase.from('projects').insert(insertBody).select('id').single()
     mutate()
+    return data?.id ?? null
   }
 
   async function updateProject(id: string, body: Partial<Project>) {

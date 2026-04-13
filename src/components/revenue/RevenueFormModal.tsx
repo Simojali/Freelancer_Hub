@@ -3,8 +3,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import type { Revenue, Client } from '@/lib/types'
+import type { Revenue, Client, Project } from '@/lib/types'
 import { useClients } from '@/hooks/useClients'
+import { useProjects } from '@/hooks/useProjects'
 
 interface Props {
   open: boolean
@@ -22,11 +23,13 @@ const empty: Partial<Revenue> = {
   payment_date: today,
   description: '',
   client_id: undefined,
+  project_id: null,
 }
 
 export default function RevenueFormModal({ open, onClose, onSave, revenue }: Props) {
   const [form, setForm] = useState<Partial<Revenue>>(empty)
   const { clients } = useClients()
+  const { projects } = useProjects()
 
   useEffect(() => {
     setForm(revenue ?? empty)
@@ -36,9 +39,14 @@ export default function RevenueFormModal({ open, onClose, onSave, revenue }: Pro
     setForm(f => ({ ...f, [field]: value }))
   }
 
+  const clientProjects = form.client_id
+    ? projects.filter((p: Project) => p.client_id === form.client_id)
+    : []
+
   function handleSave() {
     const payload = { ...form }
     if (!payload.client_id) delete payload.client_id
+    if (!payload.project_id) delete payload.project_id
     onSave(payload)
     onClose()
   }
@@ -56,12 +64,33 @@ export default function RevenueFormModal({ open, onClose, onSave, revenue }: Pro
           </div>
           <div>
             <label className="text-xs text-zinc-500 mb-1 block">Client</label>
-            <Select value={form.client_id ?? 'none'} onValueChange={v => set('client_id', v === 'none' ? undefined : v)}>
+            <Select
+              value={form.client_id ?? 'none'}
+              onValueChange={v => {
+                set('client_id', v === 'none' ? undefined : v)
+                set('project_id', null)
+              }}
+            >
               <SelectTrigger><SelectValue placeholder="Select client" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">No client</SelectItem>
                 {clients.map((c: Client) => (
                   <SelectItem key={c.id} value={c.id}>{c.client_name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <label className="text-xs text-zinc-500 mb-1 block">Project (optional)</label>
+            <Select
+              value={form.project_id ?? 'none'}
+              onValueChange={v => set('project_id', v === 'none' ? null : v)}
+            >
+              <SelectTrigger><SelectValue placeholder="Select project" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">No project</SelectItem>
+                {clientProjects.map((p: Project) => (
+                  <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

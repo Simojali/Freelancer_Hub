@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import type { Client } from '@/lib/types'
 import { useClients } from '@/hooks/useClients'
 import ClientCard from './ClientCard'
@@ -8,6 +9,7 @@ import { Plus } from 'lucide-react'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 
 export default function ClientGrid() {
+  const navigate = useNavigate()
   const { clients, isLoading, createClient, updateClient, deleteClient } = useClients()
   const [formOpen, setFormOpen] = useState(false)
   const [editClient, setEditClient] = useState<Client | null>(null)
@@ -36,6 +38,7 @@ export default function ClientGrid() {
           <ClientCard
             key={client.id}
             client={client}
+            onView={() => navigate('/clients/' + client.id)}
             onEdit={() => { setEditClient(client); setFormOpen(true) }}
             onDelete={() => setDeleteTarget(client)}
           />

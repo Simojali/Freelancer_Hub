@@ -22,9 +22,10 @@ interface Props {
   onView: () => void
   onEdit: () => void
   onDelete: () => void
+  onRenew?: () => void
 }
 
-export default function PackageRow({ project, onView, onEdit, onDelete }: Props) {
+export default function PackageRow({ project, onView, onEdit, onDelete, onRenew }: Props) {
   const total = project.total_units ?? 0
   const delivered = project.delivery_count ?? 0
   const creditsLeft = total - delivered
@@ -59,9 +60,12 @@ export default function PackageRow({ project, onView, onEdit, onDelete }: Props)
           {creditsLeft} / {total} credits
         </span>
         {isEmpty && (
-          <span className="text-xs px-2 py-0.5 rounded-full border font-medium bg-red-50 text-red-600 border-red-200">
+          <button
+            onClick={onRenew}
+            className="text-xs px-2 py-0.5 rounded-full border font-medium bg-red-50 text-red-600 border-red-200 hover:bg-red-100 cursor-pointer transition-colors"
+          >
             Renew
-          </span>
+          </button>
         )}
       </div>
 

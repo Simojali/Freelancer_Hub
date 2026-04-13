@@ -1,17 +1,19 @@
 import { useState } from 'react'
 import type { Project } from '@/lib/types'
 import { useProjects } from '@/hooks/useProjects'
+import { useRevenue } from '@/hooks/useRevenue'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Plus } from 'lucide-react'
 import PackageRow from './PackageRow'
 import GigRow from './GigRow'
-import ProjectFormModal from './ProjectFormModal'
+import ProjectFormModal, { type PaymentEntry } from './ProjectFormModal'
 import PackageDetailModal from './PackageDetailModal'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 
 export default function ProjectsList() {
   const { projects, isLoading, mutate, createProject, updateProject, deleteProject } = useProjects()
+  const { createRevenue } = useRevenue()
   const [typeFilter, setTypeFilter] = useState('all')
   const [serviceFilter, setServiceFilter] = useState('all')
   const [formOpen, setFormOpen] = useState(false)
@@ -28,9 +30,34 @@ export default function ProjectsList() {
   const packages = filtered.filter(p => p.project_type === 'package')
   const gigs = filtered.filter(p => p.project_type === 'gig')
 
-  function handleSave(data: Partial<Project>) {
-    if (editProject) updateProject(editProject.id, data)
-    else createProject(data)
+  async function handleSave(data: Partial<Project>, payment?: PaymentEntry) {
+    if (editProject) {
+      updateProject(editProject.id, data)
+    } else {
+      const newId = await createProject(data)
+      if (payment && newId) {
+        createRevenue({
+          amount: payment.amount,
+          status: payment.status,
+          payment_date: payment.payment_date,
+          client_id: data.client_id,
+          project_id: newId,
+          service_type: data.service_type,
+        })
+      }
+    }
+  }
+
+  function handleRenew(project: Project) {
+    createProject({
+      name: project.name + ' (Renewed)',
+      client_id: project.client_id,
+      service_type: project.service_type,
+      project_type: 'package',
+      price: project.price,
+      total_units: project.total_units,
+      notes: project.notes,
+    })
   }
 
   return (
@@ -83,6 +110,7 @@ export default function ProjectsList() {
               onView={() => setDetailProject(p)}
               onEdit={() => { setEditProject(p); setFormOpen(true) }}
               onDelete={() => setDeleteTarget(p)}
+              onRenew={() => handleRenew(p)}
             />
           ))}
         </div>

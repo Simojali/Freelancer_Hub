@@ -1,15 +1,16 @@
 import type { Client } from '@/lib/types'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Pencil, Trash2, ExternalLink } from 'lucide-react'
+import { Pencil, Trash2, ExternalLink, Eye } from 'lucide-react'
 
 interface Props {
   client: Client
   onEdit: () => void
   onDelete: () => void
+  onView: () => void
 }
 
-export default function ClientCard({ client, onEdit, onDelete }: Props) {
+export default function ClientCard({ client, onEdit, onDelete, onView }: Props) {
   return (
     <Card className="border border-zinc-200 shadow-none hover:border-zinc-300 transition-colors">
       <CardContent className="p-5">
@@ -19,6 +20,9 @@ export default function ClientCard({ client, onEdit, onDelete }: Props) {
             {client.email && <div className="text-xs text-zinc-400 mt-0.5">{client.email}</div>}
           </div>
           <div className="flex gap-1">
+            <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-zinc-500 hover:text-zinc-900" onClick={onView}>
+              <Eye className="w-3.5 h-3.5" />
+            </Button>
             <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={onEdit}>
               <Pencil className="w-3.5 h-3.5" />
             </Button>

@@ -51,6 +51,7 @@ export interface Project {
   total_units: number | null
   status: GigStatus | null
   notes: string | null
+  due_date: string | null
   created_at: string
   updated_at: string
   clients?: { client_name: string } | null
@@ -75,7 +76,9 @@ export interface Revenue {
   description: string | null
   created_at: string
   updated_at: string
+  project_id: string | null
   clients?: { client_name: string } | null
+  projects?: { name: string } | null
 }
 
 export interface DashboardData {

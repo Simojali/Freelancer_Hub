@@ -3,6 +3,7 @@ import AppShell from '@/components/layout/AppShell'
 import DashboardView from '@/components/dashboard/DashboardView'
 import LeadsTable from '@/components/leads/LeadsTable'
 import ClientGrid from '@/components/clients/ClientGrid'
+import ClientProfilePage from '@/components/clients/ClientProfilePage'
 import ProjectsList from '@/components/projects/ProjectsList'
 import RevenueTable from '@/components/revenue/RevenueTable'
 
@@ -58,6 +59,7 @@ export default function App() {
         <Route path="/" element={<DashboardPage />} />
         <Route path="/leads" element={<LeadsPage />} />
         <Route path="/clients" element={<ClientsPage />} />
+        <Route path="/clients/:id" element={<ClientProfilePage />} />
         <Route path="/projects" element={<ProjectsPage />} />
         <Route path="/revenue" element={<RevenuePage />} />
       </Routes>

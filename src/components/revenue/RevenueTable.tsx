@@ -44,6 +44,7 @@ export default function RevenueTable() {
             <tr className="border-b border-zinc-100 bg-zinc-50">
               <th className="text-left px-4 py-3 font-medium text-zinc-500">Date</th>
               <th className="text-left px-3 py-3 font-medium text-zinc-500">Client</th>
+              <th className="text-left px-3 py-3 font-medium text-zinc-500">Project</th>
               <th className="text-left px-3 py-3 font-medium text-zinc-500">Service</th>
               <th className="text-left px-3 py-3 font-medium text-zinc-500">Description</th>
               <th className="text-right px-3 py-3 font-medium text-zinc-500">Amount</th>
@@ -53,15 +54,20 @@ export default function RevenueTable() {
           </thead>
           <tbody>
             {isLoading && (
-              <tr><td colSpan={7} className="text-center py-8 text-zinc-400">Loading...</td></tr>
+              <tr><td colSpan={8} className="text-center py-8 text-zinc-400">Loading...</td></tr>
             )}
             {!isLoading && revenue.length === 0 && (
-              <tr><td colSpan={7} className="text-center py-8 text-zinc-400">No payments logged yet</td></tr>
+              <tr><td colSpan={8} className="text-center py-8 text-zinc-400">No payments logged yet</td></tr>
             )}
             {revenue.map(item => (
               <tr key={item.id} className="border-b border-zinc-100 hover:bg-zinc-50 transition-colors">
                 <td className="px-4 py-2.5 text-zinc-600 whitespace-nowrap">{formatDate(item.payment_date)}</td>
                 <td className="px-3 py-2.5 text-zinc-700">{item.clients?.client_name ?? '—'}</td>
+                <td className="px-3 py-2.5">
+                  {item.projects?.name
+                    ? <span className="text-xs px-2 py-0.5 rounded-full border font-medium bg-zinc-50 text-zinc-600 border-zinc-200">{item.projects.name}</span>
+                    : <span className="text-zinc-400">—</span>}
+                </td>
                 <td className="px-3 py-2.5 text-zinc-600">{serviceLabel(item.service_type)}</td>
                 <td className="px-3 py-2.5 text-zinc-500 max-w-[200px] truncate">{item.description ?? '—'}</td>
                 <td className="px-3 py-2.5 text-right font-medium text-zinc-900">{formatCurrency(Number(item.amount))}</td>

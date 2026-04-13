@@ -1,7 +1,7 @@
 import type { Project, GigStatus } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Pencil, Trash2 } from 'lucide-react'
-import { serviceLabel, formatCurrency } from '@/lib/utils'
+import { cn, serviceLabel, formatCurrency, formatDate } from '@/lib/utils'
 import GigStatusBadge from './GigStatusBadge'
 
 const SERVICE_COLORS: Record<string, string> = {
@@ -17,8 +17,16 @@ interface Props {
 }
 
 export default function GigRow({ project, onEdit, onDelete }: Props) {
+  const isOverdue =
+    project.due_date != null &&
+    project.status !== 'done' &&
+    new Date(project.due_date) < new Date()
+
   return (
-    <div className="flex items-center gap-4 px-4 py-3 bg-white border border-zinc-200 rounded-lg hover:border-zinc-300 transition-colors">
+    <div className={cn(
+      'flex items-center gap-4 px-4 py-3 bg-white border border-zinc-200 rounded-lg hover:border-zinc-300 transition-colors',
+      isOverdue && 'bg-red-50 border-red-200'
+    )}>
       {/* Type indicator */}
       <div className="shrink-0 w-1.5 h-8 rounded-full bg-zinc-300" />
 
@@ -27,6 +35,9 @@ export default function GigRow({ project, onEdit, onDelete }: Props) {
         <div className="font-medium text-zinc-900 text-sm truncate">{project.name}</div>
         {project.clients?.client_name && (
           <div className="text-xs text-zinc-400 mt-0.5">{project.clients.client_name}</div>
+        )}
+        {project.due_date && (
+          <div className="text-xs text-zinc-400 mt-0.5">Due {formatDate(project.due_date)}</div>
         )}
       </div>
 
@@ -40,9 +51,14 @@ export default function GigRow({ project, onEdit, onDelete }: Props) {
         <span className="text-sm text-zinc-600 shrink-0">{formatCurrency(project.price)}</span>
       )}
 
-      {/* Status */}
-      <div className="shrink-0">
+      {/* Status + Overdue */}
+      <div className="shrink-0 flex items-center gap-1.5">
         {project.status && <GigStatusBadge status={project.status as GigStatus} />}
+        {isOverdue && (
+          <span className="text-xs px-2 py-0.5 rounded-full border font-medium bg-red-50 text-red-600 border-red-200">
+            Overdue
+          </span>
+        )}
       </div>
 
       {/* Actions */}

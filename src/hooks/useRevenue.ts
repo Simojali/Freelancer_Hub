@@ -4,17 +4,19 @@ import { supabase } from '@/lib/supabase'
 
 export function useRevenue() {
   const { data, error, mutate, isLoading } = useSWR<Revenue[]>('revenue', async () => {
-    const result = await supabase.from('revenue').select('*, clients(client_name)').order('payment_date', { ascending: false })
+    const result = await supabase.from('revenue').select('*, clients(client_name), projects(name)').order('payment_date', { ascending: false })
     return (result.data ?? []) as Revenue[]
   })
 
   async function createRevenue(body: Partial<Revenue>) {
-    await supabase.from('revenue').insert(body)
+    const { projects: _p, clients: _c, ...insertBody } = body as Revenue
+    await supabase.from('revenue').insert(insertBody)
     mutate()
   }
 
   async function updateRevenue(id: string, body: Partial<Revenue>) {
-    await supabase.from('revenue').update(body).eq('id', id)
+    const { projects: _p, clients: _c, ...updateBody } = body as Revenue
+    await supabase.from('revenue').update(updateBody).eq('id', id)
     mutate()
   }
 
