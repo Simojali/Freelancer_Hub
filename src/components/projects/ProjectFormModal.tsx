@@ -43,6 +43,17 @@ const emptyPackage: Partial<Project> = {
   client_id: undefined,
 }
 
+const emptyRetainer: Partial<Project> = {
+  name: '',
+  project_type: 'retainer',
+  service_type: 'thumbnail',
+  status: null,
+  price: undefined,
+  unit_price: undefined,
+  notes: '',
+  client_id: undefined,
+}
+
 export default function ProjectFormModal({ open, onClose, onSave, project }: Props) {
   const [form, setForm] = useState<Partial<Project>>(emptyGig)
   const [logPayment, setLogPayment] = useState(false)
@@ -75,8 +86,9 @@ export default function ProjectFormModal({ open, onClose, onSave, project }: Pro
   }
 
   function handleTypeChange(type: ProjectType) {
+    const base = type === 'package' ? emptyPackage : type === 'retainer' ? emptyRetainer : emptyGig
     setForm(f => ({
-      ...(type === 'package' ? emptyPackage : emptyGig),
+      ...base,
       name: f.name,
       client_id: f.client_id,
       service_type: f.service_type,
@@ -97,7 +109,7 @@ export default function ProjectFormModal({ open, onClose, onSave, project }: Pro
   function handleSave() {
     const payload = { ...form }
     if (!payload.client_id) delete payload.client_id
-    if (payload.project_type === 'package') delete payload.status
+    if (payload.project_type !== 'gig') delete payload.status
 
     const payment: PaymentEntry | undefined =
       !project && logPayment && paymentAmount
@@ -109,6 +121,7 @@ export default function ProjectFormModal({ open, onClose, onSave, project }: Pro
   }
 
   const isPackage = form.project_type === 'package'
+  const isGig = form.project_type === 'gig'
   const isNew = !project
 
   return (
@@ -124,20 +137,16 @@ export default function ProjectFormModal({ open, onClose, onSave, project }: Pro
             <div>
               <label className="text-xs text-zinc-500 mb-1 block">Type</label>
               <div className="flex rounded-md border border-zinc-200 overflow-hidden">
-                <button
-                  type="button"
-                  onClick={() => handleTypeChange('gig')}
-                  className={`flex-1 py-1.5 text-sm font-medium transition-colors ${!isPackage ? 'bg-zinc-900 text-white' : 'bg-white text-zinc-500 hover:bg-zinc-50'}`}
-                >
-                  Gig
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleTypeChange('package')}
-                  className={`flex-1 py-1.5 text-sm font-medium transition-colors ${isPackage ? 'bg-zinc-900 text-white' : 'bg-white text-zinc-500 hover:bg-zinc-50'}`}
-                >
-                  Package
-                </button>
+                {(['gig', 'package', 'retainer'] as ProjectType[]).map(t => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => handleTypeChange(t)}
+                    className={`flex-1 py-1.5 text-sm font-medium transition-colors ${form.project_type === t ? 'bg-zinc-900 text-white' : 'bg-white text-zinc-500 hover:bg-zinc-50'}`}
+                  >
+                    {t.charAt(0).toUpperCase() + t.slice(1)}
+                  </button>
+                ))}
               </div>
             </div>
           )}
@@ -183,8 +192,21 @@ export default function ProjectFormModal({ open, onClose, onSave, project }: Pro
             </div>
           )}
 
+          {/* Retainer-only */}
+          {form.project_type === 'retainer' && (
+            <div>
+              <label className="text-xs text-zinc-500 mb-1 block">Rate per unit *</label>
+              <Input
+                type="number"
+                value={form.unit_price ?? ''}
+                onChange={e => set('unit_price', e.target.value ? Number(e.target.value) : undefined)}
+                placeholder="e.g. 200"
+              />
+            </div>
+          )}
+
           {/* Gig-only */}
-          {!isPackage && (
+          {isGig && (
             <>
               <div>
                 <label className="text-xs text-zinc-500 mb-1 block">Status</label>
@@ -264,7 +286,7 @@ export default function ProjectFormModal({ open, onClose, onSave, project }: Pro
           <Button variant="outline" onClick={onClose}>Cancel</Button>
           <Button
             onClick={handleSave}
-            disabled={!form.name?.trim() || (isPackage && !form.total_units) || (logPayment && !paymentAmount)}
+            disabled={!form.name?.trim() || (isPackage && !form.total_units) || (form.project_type === 'retainer' && !form.unit_price) || (logPayment && !paymentAmount)}
           >
             Save{logPayment ? ' & Log Payment' : ''}
           </Button>

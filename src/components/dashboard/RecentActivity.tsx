@@ -28,6 +28,8 @@ export default function RecentActivity({ recentProjects, recentPayments }: Props
                 <div className="shrink-0">
                   {p.project_type === 'package'
                     ? <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-violet-100 text-violet-700">Package</span>
+                    : p.project_type === 'retainer'
+                    ? <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-teal-100 text-teal-700">Retainer</span>
                     : <GigStatusBadge status={p.status as GigStatus} />
                   }
                 </div>

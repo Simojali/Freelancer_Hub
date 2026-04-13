@@ -1,6 +1,6 @@
 export type ServiceType = 'thumbnail' | 'video_editing' | 'both'
 export type GigStatus = 'pending' | 'in_progress' | 'done'
-export type ProjectType = 'package' | 'gig'
+export type ProjectType = 'package' | 'gig' | 'retainer'
 export type PaymentStatus = 'paid' | 'pending'
 
 export interface Lead {
@@ -52,6 +52,7 @@ export interface Project {
   status: GigStatus | null
   notes: string | null
   due_date: string | null
+  unit_price: number | null
   created_at: string
   updated_at: string
   clients?: { client_name: string } | null

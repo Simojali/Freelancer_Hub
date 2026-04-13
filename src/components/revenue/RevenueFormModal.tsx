@@ -12,6 +12,7 @@ interface Props {
   onClose: () => void
   onSave: (data: Partial<Revenue>) => void
   revenue?: Revenue | null
+  prefill?: Partial<Revenue>
 }
 
 const today = new Date().toISOString().split('T')[0]
@@ -26,14 +27,14 @@ const empty: Partial<Revenue> = {
   project_id: null,
 }
 
-export default function RevenueFormModal({ open, onClose, onSave, revenue }: Props) {
+export default function RevenueFormModal({ open, onClose, onSave, revenue, prefill }: Props) {
   const [form, setForm] = useState<Partial<Revenue>>(empty)
   const { clients } = useClients()
   const { projects } = useProjects()
 
   useEffect(() => {
-    setForm(revenue ?? empty)
-  }, [revenue, open])
+    setForm(revenue ?? (prefill ? { ...empty, ...prefill } : empty))
+  }, [revenue, prefill, open])
 
   function set(field: string, value: string | number | null | undefined) {
     setForm(f => ({ ...f, [field]: value }))

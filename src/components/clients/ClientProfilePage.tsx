@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { ArrowLeft, ExternalLink, Pencil } from 'lucide-react'
 import PackageRow from '@/components/projects/PackageRow'
 import GigRow from '@/components/projects/GigRow'
+import RetainerRow from '@/components/projects/RetainerRow'
 import PaymentStatusBadge from '@/components/revenue/PaymentStatusBadge'
 import ClientFormModal from './ClientFormModal'
 import { formatCurrency, formatDate } from '@/lib/utils'
@@ -58,6 +59,7 @@ export default function ClientProfilePage() {
   }
 
   const { client, projects, revenue } = profile
+  const retainers = projects.filter(p => p.project_type === 'retainer')
   const packages = projects.filter(p => p.project_type === 'package')
   const gigs = projects.filter(p => p.project_type === 'gig')
   const totalPaid = revenue.filter(r => r.status === 'paid').reduce((s, r) => s + Number(r.amount), 0)
@@ -114,6 +116,24 @@ export default function ClientProfilePage() {
       {projects.length > 0 && (
         <div className="space-y-3">
           <h2 className="text-sm font-medium text-zinc-700">Projects</h2>
+          {retainers.length > 0 && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-teal-400" />
+                <span className="text-xs font-medium text-zinc-500 uppercase tracking-wide">Retainers</span>
+              </div>
+              {retainers.map(p => (
+                <RetainerRow
+                  key={p.id}
+                  project={p}
+                  onView={() => {}}
+                  onBill={() => {}}
+                  onEdit={() => {}}
+                  onDelete={() => {}}
+                />
+              ))}
+            </div>
+          )}
           {packages.length > 0 && (
             <div className="space-y-2">
               <div className="flex items-center gap-2">

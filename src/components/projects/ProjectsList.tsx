@@ -1,25 +1,34 @@
 import { useState } from 'react'
-import type { Project } from '@/lib/types'
+import type { Project, Revenue } from '@/lib/types'
 import { useProjects } from '@/hooks/useProjects'
 import { useRevenue } from '@/hooks/useRevenue'
+import { useSettings } from '@/hooks/useSettings'
+import { formatCurrency } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Plus } from 'lucide-react'
 import PackageRow from './PackageRow'
 import GigRow from './GigRow'
+import RetainerRow from './RetainerRow'
 import ProjectFormModal, { type PaymentEntry } from './ProjectFormModal'
 import PackageDetailModal from './PackageDetailModal'
+import RetainerDetailModal from './RetainerDetailModal'
+import RevenueFormModal from '@/components/revenue/RevenueFormModal'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 
 export default function ProjectsList() {
   const { projects, isLoading, mutate, createProject, updateProject, deleteProject } = useProjects()
   const { createRevenue } = useRevenue()
+  const { currency } = useSettings()
   const [typeFilter, setTypeFilter] = useState('all')
   const [serviceFilter, setServiceFilter] = useState('all')
   const [formOpen, setFormOpen] = useState(false)
   const [editProject, setEditProject] = useState<Project | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Project | null>(null)
   const [detailProject, setDetailProject] = useState<Project | null>(null)
+  const [detailRetainer, setDetailRetainer] = useState<Project | null>(null)
+  const [billPrefill, setBillPrefill] = useState<Partial<Revenue> | undefined>(undefined)
+  const [revenueOpen, setRevenueOpen] = useState(false)
 
   const filtered = projects.filter(p => {
     if (typeFilter !== 'all' && p.project_type !== typeFilter) return false
@@ -27,6 +36,7 @@ export default function ProjectsList() {
     return true
   })
 
+  const retainers = filtered.filter(p => p.project_type === 'retainer')
   const packages = filtered.filter(p => p.project_type === 'package')
   const gigs = filtered.filter(p => p.project_type === 'gig')
 
@@ -46,6 +56,21 @@ export default function ProjectsList() {
         })
       }
     }
+  }
+
+  function handleBill(project: Project) {
+    const owed = (project.delivery_count ?? 0) * (project.unit_price ?? 0)
+    const count = project.delivery_count ?? 0
+    setBillPrefill({
+      client_id: project.client_id ?? undefined,
+      project_id: project.id,
+      service_type: project.service_type,
+      amount: owed,
+      description: `${count} deliver${count !== 1 ? 'ies' : 'y'} × ${formatCurrency(project.unit_price ?? 0, currency)}`,
+      status: 'pending',
+      payment_date: new Date().toISOString().split('T')[0],
+    })
+    setRevenueOpen(true)
   }
 
   function handleRenew(project: Project) {
@@ -68,6 +93,7 @@ export default function ProjectsList() {
           <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Types</SelectItem>
+            <SelectItem value="retainer">Retainers</SelectItem>
             <SelectItem value="package">Packages</SelectItem>
             <SelectItem value="gig">Gigs</SelectItem>
           </SelectContent>
@@ -92,6 +118,28 @@ export default function ProjectsList() {
 
       {!isLoading && filtered.length === 0 && (
         <div className="text-sm text-zinc-400 py-16 text-center">No projects yet.</div>
+      )}
+
+      {/* Retainers section */}
+      {retainers.length > 0 && (
+        <div className="space-y-2">
+          {typeFilter === 'all' && (
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-1.5 h-1.5 rounded-full bg-teal-400" />
+              <span className="text-xs font-medium text-zinc-500 uppercase tracking-wide">Retainers</span>
+            </div>
+          )}
+          {retainers.map(p => (
+            <RetainerRow
+              key={p.id}
+              project={p}
+              onView={() => setDetailRetainer(p)}
+              onBill={() => handleBill(p)}
+              onEdit={() => { setEditProject(p); setFormOpen(true) }}
+              onDelete={() => setDeleteTarget(p)}
+            />
+          ))}
+        </div>
       )}
 
       {/* Packages section */}
@@ -150,13 +198,28 @@ export default function ProjectsList() {
         onDeliveryChange={() => mutate()}
       />
 
+      <RetainerDetailModal
+        open={!!detailRetainer}
+        onClose={() => setDetailRetainer(null)}
+        project={detailRetainer}
+        onDeliveryChange={() => mutate()}
+        onBill={() => { const p = detailRetainer; setDetailRetainer(null); if (p) handleBill(p) }}
+      />
+
+      <RevenueFormModal
+        open={revenueOpen}
+        onClose={() => { setRevenueOpen(false); setBillPrefill(undefined) }}
+        onSave={data => createRevenue(data)}
+        prefill={billPrefill}
+      />
+
       <AlertDialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete project?</AlertDialogTitle>
             <AlertDialogDescription>
               This will permanently delete <strong>{deleteTarget?.name}</strong>
-              {deleteTarget?.project_type === 'package' && ' and all its delivery logs'}.
+              {deleteTarget?.project_type !== 'gig' && ' and all its delivery logs'}.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
