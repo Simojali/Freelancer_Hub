@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Pencil, Trash2 } from 'lucide-react'
 import { cn, serviceLabel, formatCurrency, formatDate } from '@/lib/utils'
 import GigStatusBadge from './GigStatusBadge'
+import { useSettings } from '@/hooks/useSettings'
 
 const SERVICE_COLORS: Record<string, string> = {
   thumbnail:     'bg-blue-50 text-blue-700 border-blue-200',
@@ -17,6 +18,7 @@ interface Props {
 }
 
 export default function GigRow({ project, onEdit, onDelete }: Props) {
+  const { currency } = useSettings()
   const isOverdue =
     project.due_date != null &&
     project.status !== 'done' &&
@@ -48,7 +50,7 @@ export default function GigRow({ project, onEdit, onDelete }: Props) {
 
       {/* Price */}
       {project.price != null && (
-        <span className="text-sm text-zinc-600 shrink-0">{formatCurrency(project.price)}</span>
+        <span className="text-sm text-zinc-600 shrink-0">{formatCurrency(project.price, currency)}</span>
       )}
 
       {/* Status + Overdue */}

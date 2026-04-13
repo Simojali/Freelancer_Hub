@@ -2,6 +2,7 @@ import type { DashboardData, GigStatus, PaymentStatus } from '@/lib/types'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import GigStatusBadge from '@/components/projects/GigStatusBadge'
 import PaymentStatusBadge from '@/components/revenue/PaymentStatusBadge'
+import { useSettings } from '@/hooks/useSettings'
 
 interface Props {
   recentProjects: DashboardData['recentProjects']
@@ -9,6 +10,7 @@ interface Props {
 }
 
 export default function RecentActivity({ recentProjects, recentPayments }: Props) {
+  const { currency } = useSettings()
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
       <div className="bg-white border border-zinc-200 rounded-lg p-5">
@@ -48,7 +50,7 @@ export default function RecentActivity({ recentProjects, recentPayments }: Props
                   <div className="text-xs text-zinc-400">{formatDate(r.payment_date)}</div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  <span className="text-sm font-semibold text-zinc-900">{formatCurrency(Number(r.amount))}</span>
+                  <span className="text-sm font-semibold text-zinc-900">{formatCurrency(Number(r.amount), currency)}</span>
                   <PaymentStatusBadge status={r.status as PaymentStatus} />
                 </div>
               </div>

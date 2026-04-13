@@ -81,6 +81,13 @@ export interface Revenue {
   projects?: { name: string } | null
 }
 
+export interface Settings {
+  id: string
+  currency: string
+  created_at: string
+  updated_at: string
+}
+
 export interface DashboardData {
   kpis: {
     totalLeads: number

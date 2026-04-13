@@ -1,12 +1,16 @@
 import { useMemo } from 'react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import type { Revenue } from '@/lib/types'
+import { useSettings } from '@/hooks/useSettings'
+import { formatCurrency } from '@/lib/utils'
 
 interface Props {
   revenue: Revenue[]
 }
 
 export default function MonthlyChart({ revenue }: Props) {
+  const { currency } = useSettings()
+
   const data = useMemo(() => {
     const map: Record<string, { month: string; thumbnail: number; video_editing: number; both: number }> = {}
 
@@ -36,10 +40,10 @@ export default function MonthlyChart({ revenue }: Props) {
       <ResponsiveContainer width="100%" height={220}>
         <BarChart data={data} barSize={16}>
           <XAxis dataKey="month" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
-          <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
+          <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} tickFormatter={v => formatCurrency(v, currency)} />
           <Tooltip
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            formatter={(value: any, name: any) => [`$${value}`, name === 'video_editing' ? 'Video Editing' : name === 'thumbnail' ? 'Thumbnail' : 'Both'] as [string, string]}
+            formatter={(value: any, name: any) => [formatCurrency(value, currency), name === 'video_editing' ? 'Video Editing' : name === 'thumbnail' ? 'Thumbnail' : 'Both'] as [string, string]}
             contentStyle={{ fontSize: 12, borderRadius: 6, border: '1px solid #e4e4e7' }}
           />
           <Legend formatter={(v) => v === 'video_editing' ? 'Video Editing' : v === 'thumbnail' ? 'Thumbnail' : 'Both'} wrapperStyle={{ fontSize: 12 }} />

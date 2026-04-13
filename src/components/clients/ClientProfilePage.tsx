@@ -10,6 +10,7 @@ import GigRow from '@/components/projects/GigRow'
 import PaymentStatusBadge from '@/components/revenue/PaymentStatusBadge'
 import ClientFormModal from './ClientFormModal'
 import { formatCurrency, formatDate } from '@/lib/utils'
+import { useSettings } from '@/hooks/useSettings'
 import type { Project, Client, PaymentStatus } from '@/lib/types'
 
 export default function ClientProfilePage() {
@@ -19,6 +20,7 @@ export default function ClientProfilePage() {
   const { updateClient } = useClients()
   const { createProject } = useProjects()
   const [editOpen, setEditOpen] = useState(false)
+  const { currency } = useSettings()
 
   function handleRenew(project: Project) {
     createProject({
@@ -99,11 +101,11 @@ export default function ClientProfilePage() {
           <div className="text-xs text-zinc-500 mt-0.5">Projects</div>
         </div>
         <div className="bg-white border border-zinc-200 rounded-lg px-4 py-3 text-center">
-          <div className="text-xl font-semibold text-emerald-600">{formatCurrency(totalPaid)}</div>
+          <div className="text-xl font-semibold text-emerald-600">{formatCurrency(totalPaid, currency)}</div>
           <div className="text-xs text-zinc-500 mt-0.5">Total Paid</div>
         </div>
         <div className="bg-white border border-zinc-200 rounded-lg px-4 py-3 text-center">
-          <div className="text-xl font-semibold text-amber-500">{formatCurrency(totalPending)}</div>
+          <div className="text-xl font-semibold text-amber-500">{formatCurrency(totalPending, currency)}</div>
           <div className="text-xs text-zinc-500 mt-0.5">Pending</div>
         </div>
       </div>
@@ -175,7 +177,7 @@ export default function ClientProfilePage() {
                   )}
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  <span className="text-sm font-semibold text-zinc-900">{formatCurrency(Number(r.amount))}</span>
+                  <span className="text-sm font-semibold text-zinc-900">{formatCurrency(Number(r.amount), currency)}</span>
                   <PaymentStatusBadge status={r.status as PaymentStatus} />
                 </div>
               </div>

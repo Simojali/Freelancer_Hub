@@ -4,9 +4,11 @@ import PipelineFunnel from './PipelineFunnel'
 import RecentActivity from './RecentActivity'
 import { Users, UserCheck, DollarSign, FolderKanban, TrendingUp } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
+import { useSettings } from '@/hooks/useSettings'
 
 export default function DashboardView() {
   const { data, isLoading } = useDashboard()
+  const { currency } = useSettings()
 
   if (isLoading || !data) {
     return (
@@ -29,7 +31,7 @@ export default function DashboardView() {
         <KpiCard label="Total Leads" value={kpis.totalLeads} icon={Users} iconColor="text-zinc-400" />
         <KpiCard label="Conversion" value={kpis.conversionRate} icon={TrendingUp} iconColor="text-emerald-500" />
         <KpiCard label="Active Clients" value={kpis.activeClients} icon={UserCheck} iconColor="text-blue-500" />
-        <KpiCard label="This Month" value={formatCurrency(kpis.monthlyRevenue)} icon={DollarSign} iconColor="text-emerald-500" />
+        <KpiCard label="This Month" value={formatCurrency(kpis.monthlyRevenue, currency)} icon={DollarSign} iconColor="text-emerald-500" />
         <KpiCard label="Open Projects" value={kpis.openProjects} icon={FolderKanban} iconColor="text-amber-500" />
       </div>
 

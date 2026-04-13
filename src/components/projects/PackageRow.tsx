@@ -2,6 +2,7 @@ import type { Project } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Pencil, Trash2, Eye } from 'lucide-react'
 import { serviceLabel, formatCurrency } from '@/lib/utils'
+import { useSettings } from '@/hooks/useSettings'
 
 const SERVICE_COLORS: Record<string, string> = {
   thumbnail:     'bg-blue-50 text-blue-700 border-blue-200',
@@ -26,6 +27,7 @@ interface Props {
 }
 
 export default function PackageRow({ project, onView, onEdit, onDelete, onRenew }: Props) {
+  const { currency } = useSettings()
   const total = project.total_units ?? 0
   const delivered = project.delivery_count ?? 0
   const creditsLeft = total - delivered
@@ -51,7 +53,7 @@ export default function PackageRow({ project, onView, onEdit, onDelete, onRenew 
 
       {/* Price */}
       {project.price != null && (
-        <span className="text-sm text-zinc-600 shrink-0">{formatCurrency(project.price)}</span>
+        <span className="text-sm text-zinc-600 shrink-0">{formatCurrency(project.price, currency)}</span>
       )}
 
       {/* Credits */}

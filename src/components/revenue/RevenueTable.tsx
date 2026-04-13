@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { Revenue } from '@/lib/types'
 import { useRevenue } from '@/hooks/useRevenue'
+import { useSettings } from '@/hooks/useSettings'
 import { Button } from '@/components/ui/button'
 import { Plus, Pencil, Trash2 } from 'lucide-react'
 import { formatCurrency, formatDate, serviceLabel } from '@/lib/utils'
@@ -11,6 +12,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 
 export default function RevenueTable() {
   const { revenue, isLoading, createRevenue, updateRevenue, deleteRevenue } = useRevenue()
+  const { currency } = useSettings()
   const [formOpen, setFormOpen] = useState(false)
   const [editItem, setEditItem] = useState<Revenue | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Revenue | null>(null)
@@ -29,8 +31,8 @@ export default function RevenueTable() {
 
       {/* Summary row */}
       <div className="flex items-center gap-6 text-sm">
-        <div><span className="text-zinc-500">Total Paid: </span><span className="font-semibold text-zinc-900">{formatCurrency(totalPaid)}</span></div>
-        <div><span className="text-zinc-500">Pending: </span><span className="font-semibold text-amber-600">{formatCurrency(totalPending)}</span></div>
+        <div><span className="text-zinc-500">Total Paid: </span><span className="font-semibold text-zinc-900">{formatCurrency(totalPaid, currency)}</span></div>
+        <div><span className="text-zinc-500">Pending: </span><span className="font-semibold text-amber-600">{formatCurrency(totalPending, currency)}</span></div>
         <div className="ml-auto">
           <Button size="sm" onClick={() => { setEditItem(null); setFormOpen(true) }}>
             <Plus className="w-4 h-4 mr-1" /> Log Payment
@@ -70,7 +72,7 @@ export default function RevenueTable() {
                 </td>
                 <td className="px-3 py-2.5 text-zinc-600">{serviceLabel(item.service_type)}</td>
                 <td className="px-3 py-2.5 text-zinc-500 max-w-[200px] truncate">{item.description ?? '—'}</td>
-                <td className="px-3 py-2.5 text-right font-medium text-zinc-900">{formatCurrency(Number(item.amount))}</td>
+                <td className="px-3 py-2.5 text-right font-medium text-zinc-900">{formatCurrency(Number(item.amount), currency)}</td>
                 <td className="px-3 py-2.5"><PaymentStatusBadge status={item.status} /></td>
                 <td className="px-3 py-2.5">
                   <div className="flex justify-end gap-1">
