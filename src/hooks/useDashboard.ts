@@ -12,7 +12,8 @@ export function useDashboard() {
       closedLeadsRes,
       activeClientsRes,
       monthlyRevenueRes,
-      openProjectsRes,
+      openGigsRes,
+      openPackagesRes,
       sampleRes,
       beforeAfterRes,
       followedRes,
@@ -28,7 +29,8 @@ export function useDashboard() {
       supabase.from('leads').select('*', { count: 'exact', head: true }).eq('closed', true),
       supabase.from('clients').select('*', { count: 'exact', head: true }),
       supabase.from('revenue').select('amount').eq('status', 'paid').gte('payment_date', firstOfMonth),
-      supabase.from('projects').select('*', { count: 'exact', head: true }).neq('status', 'done'),
+      supabase.from('projects').select('*', { count: 'exact', head: true }).eq('project_type', 'gig').neq('status', 'done'),
+      supabase.from('projects').select('*', { count: 'exact', head: true }).eq('project_type', 'package'),
       supabase.from('leads').select('*', { count: 'exact', head: true }).eq('thumbnail_sample', true),
       supabase.from('leads').select('*', { count: 'exact', head: true }).eq('before_after_made', true),
       supabase.from('leads').select('*', { count: 'exact', head: true }).eq('followed_engaged', true),
@@ -37,7 +39,7 @@ export function useDashboard() {
       supabase.from('leads').select('*', { count: 'exact', head: true }).eq('seen', true),
       supabase.from('leads').select('*', { count: 'exact', head: true }).eq('responded', true),
       supabase.from('leads').select('*', { count: 'exact', head: true }).eq('closed', true),
-      supabase.from('projects').select('id, title, status, due_date, clients(client_name)').neq('status', 'done').order('created_at', { ascending: false }).limit(5),
+      supabase.from('projects').select('id, name, project_type, status, clients(client_name)').order('created_at', { ascending: false }).limit(5),
       supabase.from('revenue').select('id, amount, status, payment_date, clients(client_name)').order('payment_date', { ascending: false }).limit(5),
     ])
 
@@ -52,7 +54,7 @@ export function useDashboard() {
         conversionRate: `${conversionRate}%`,
         activeClients: activeClientsRes.count ?? 0,
         monthlyRevenue,
-        openProjects: openProjectsRes.count ?? 0,
+        openProjects: (openGigsRes.count ?? 0) + (openPackagesRes.count ?? 0),
       },
       pipeline: {
         sample: sampleRes.count ?? 0,

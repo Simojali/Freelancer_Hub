@@ -4,21 +4,29 @@ import { supabase } from '@/lib/supabase'
 
 export function useProjects() {
   const { data, error, mutate, isLoading } = useSWR<Project[]>('projects', async () => {
-    const result = await supabase.from('projects').select('*, clients(client_name)').order('created_at', { ascending: false })
-    return (result.data ?? []) as Project[]
+    const result = await supabase
+      .from('projects')
+      .select('*, clients(client_name), deliveries(count)')
+      .order('created_at', { ascending: false })
+    return (result.data ?? []).map(row => ({
+      ...row,
+      delivery_count: (row.deliveries as { count: number }[] | null)?.[0]?.count ?? 0,
+    })) as Project[]
   })
 
   async function createProject(body: Partial<Project>) {
-    await supabase.from('projects').insert(body)
+    const { delivery_count: _dc, clients: _cl, ...insertBody } = body as Project & { delivery_count?: number }
+    await supabase.from('projects').insert(insertBody)
     mutate()
   }
 
   async function updateProject(id: string, body: Partial<Project>) {
+    const { delivery_count: _dc, clients: _cl, ...updateBody } = body as Project & { delivery_count?: number }
     mutate(
       (projects) => projects?.map(p => p.id === id ? { ...p, ...body } : p),
       false
     )
-    await supabase.from('projects').update(body).eq('id', id)
+    await supabase.from('projects').update(updateBody).eq('id', id)
     mutate()
   }
 
@@ -27,5 +35,5 @@ export function useProjects() {
     mutate()
   }
 
-  return { projects: data ?? [], isLoading, error, createProject, updateProject, deleteProject }
+  return { projects: data ?? [], isLoading, error, mutate, createProject, updateProject, deleteProject }
 }

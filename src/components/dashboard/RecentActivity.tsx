@@ -1,6 +1,6 @@
-import type { DashboardData, ProjectStatus, PaymentStatus } from '@/lib/types'
+import type { DashboardData, GigStatus, PaymentStatus } from '@/lib/types'
 import { formatCurrency, formatDate } from '@/lib/utils'
-import StatusBadge from '@/components/projects/StatusBadge'
+import GigStatusBadge from '@/components/projects/GigStatusBadge'
 import PaymentStatusBadge from '@/components/revenue/PaymentStatusBadge'
 
 interface Props {
@@ -20,11 +20,14 @@ export default function RecentActivity({ recentProjects, recentPayments }: Props
             {recentProjects.map(p => (
               <div key={p.id} className="flex items-center justify-between gap-2">
                 <div className="min-w-0">
-                  <div className="text-sm text-zinc-800 font-medium truncate">{p.title}</div>
+                  <div className="text-sm text-zinc-800 font-medium truncate">{p.name}</div>
                   {p.clients?.client_name && <div className="text-xs text-zinc-400">{p.clients.client_name}</div>}
                 </div>
                 <div className="shrink-0">
-                  <StatusBadge status={p.status as ProjectStatus} />
+                  {p.project_type === 'package'
+                    ? <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-violet-100 text-violet-700">Package</span>
+                    : <GigStatusBadge status={p.status as GigStatus} />
+                  }
                 </div>
               </div>
             ))}

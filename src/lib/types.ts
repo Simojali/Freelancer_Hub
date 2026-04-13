@@ -1,5 +1,6 @@
 export type ServiceType = 'thumbnail' | 'video_editing' | 'both'
-export type ProjectStatus = 'in_progress' | 'review' | 'done'
+export type GigStatus = 'pending' | 'in_progress' | 'done'
+export type ProjectType = 'package' | 'gig'
 export type PaymentStatus = 'paid' | 'pending'
 
 export interface Lead {
@@ -35,13 +36,6 @@ export interface Client {
   channel_link: string | null
   channel_link_2: string | null
   email: string | null
-  service_type: ServiceType
-  package_name: string | null
-  package_price: number | null
-  package_units: number | null
-  purchases: number
-  credit_left: number
-  package_total: number
   notes: string | null
   created_at: string
   updated_at: string
@@ -50,14 +44,25 @@ export interface Client {
 export interface Project {
   id: string
   client_id: string | null
-  title: string
+  name: string
   service_type: ServiceType
-  status: ProjectStatus
-  due_date: string | null
+  project_type: ProjectType
+  price: number | null
+  total_units: number | null
+  status: GigStatus | null
   notes: string | null
   created_at: string
   updated_at: string
   clients?: { client_name: string } | null
+  delivery_count?: number
+}
+
+export interface Delivery {
+  id: string
+  project_id: string
+  description: string | null
+  delivered_at: string
+  created_at: string
 }
 
 export interface Revenue {

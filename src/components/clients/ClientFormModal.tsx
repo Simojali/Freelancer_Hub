@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import type { Client } from '@/lib/types'
 
 interface Props {
@@ -17,13 +16,6 @@ const empty: Partial<Client> = {
   channel_link: '',
   channel_link_2: '',
   email: '',
-  service_type: 'thumbnail',
-  package_name: '',
-  package_price: undefined,
-  package_units: undefined,
-  purchases: 0,
-  credit_left: 0,
-  package_total: 0,
   notes: '',
 }
 
@@ -34,7 +26,7 @@ export default function ClientFormModal({ open, onClose, onSave, client }: Props
     setForm(client ?? empty)
   }, [client, open])
 
-  function set(field: string, value: string | number | null | undefined) {
+  function set(field: string, value: string) {
     setForm(f => ({ ...f, [field]: value }))
   }
 
@@ -45,7 +37,7 @@ export default function ClientFormModal({ open, onClose, onSave, client }: Props
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>{client ? 'Edit Client' : 'New Client'}</DialogTitle>
         </DialogHeader>
@@ -53,17 +45,6 @@ export default function ClientFormModal({ open, onClose, onSave, client }: Props
           <div>
             <label className="text-xs text-zinc-500 mb-1 block">Client Name *</label>
             <Input value={form.client_name ?? ''} onChange={e => set('client_name', e.target.value)} placeholder="e.g. Leigh Brown" />
-          </div>
-          <div>
-            <label className="text-xs text-zinc-500 mb-1 block">Service</label>
-            <Select value={form.service_type ?? 'thumbnail'} onValueChange={v => set('service_type', v)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="thumbnail">Thumbnail</SelectItem>
-                <SelectItem value="video_editing">Video Editing</SelectItem>
-                <SelectItem value="both">Both</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
           <div>
             <label className="text-xs text-zinc-500 mb-1 block">Email</label>
@@ -76,34 +57,6 @@ export default function ClientFormModal({ open, onClose, onSave, client }: Props
           <div>
             <label className="text-xs text-zinc-500 mb-1 block">Channel Link #2</label>
             <Input value={form.channel_link_2 ?? ''} onChange={e => set('channel_link_2', e.target.value)} placeholder="https://youtube.com/..." />
-          </div>
-          <div>
-            <label className="text-xs text-zinc-500 mb-1 block">Package Name</label>
-            <Input value={form.package_name ?? ''} onChange={e => set('package_name', e.target.value)} placeholder="e.g. 150$ for 12" />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs text-zinc-500 mb-1 block">Package Price ($)</label>
-              <Input type="number" value={form.package_price ?? ''} onChange={e => set('package_price', e.target.value ? Number(e.target.value) : undefined)} placeholder="150" />
-            </div>
-            <div>
-              <label className="text-xs text-zinc-500 mb-1 block">Package Units</label>
-              <Input type="number" value={form.package_units ?? ''} onChange={e => set('package_units', e.target.value ? Number(e.target.value) : undefined)} placeholder="12" />
-            </div>
-          </div>
-          <div className="grid grid-cols-3 gap-3">
-            <div>
-              <label className="text-xs text-zinc-500 mb-1 block">Purchases</label>
-              <Input type="number" value={form.purchases ?? 0} onChange={e => set('purchases', Number(e.target.value))} />
-            </div>
-            <div>
-              <label className="text-xs text-zinc-500 mb-1 block">Credits Left</label>
-              <Input type="number" value={form.credit_left ?? 0} onChange={e => set('credit_left', Number(e.target.value))} />
-            </div>
-            <div>
-              <label className="text-xs text-zinc-500 mb-1 block">Package Total</label>
-              <Input type="number" value={form.package_total ?? 0} onChange={e => set('package_total', Number(e.target.value))} />
-            </div>
           </div>
           <div>
             <label className="text-xs text-zinc-500 mb-1 block">Notes</label>

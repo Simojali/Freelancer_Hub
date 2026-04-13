@@ -3,7 +3,7 @@ import AppShell from '@/components/layout/AppShell'
 import DashboardView from '@/components/dashboard/DashboardView'
 import LeadsTable from '@/components/leads/LeadsTable'
 import ClientGrid from '@/components/clients/ClientGrid'
-import ProjectsBoard from '@/components/projects/ProjectsBoard'
+import ProjectsList from '@/components/projects/ProjectsList'
 import RevenueTable from '@/components/revenue/RevenueTable'
 
 function DashboardPage() {
@@ -37,7 +37,7 @@ function ProjectsPage() {
   return (
     <div>
       <h1 className="text-xl font-semibold text-zinc-900 mb-6">Projects</h1>
-      <ProjectsBoard />
+      <ProjectsList />
     </div>
   )
 }
