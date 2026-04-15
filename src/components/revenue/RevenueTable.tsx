@@ -4,7 +4,8 @@ import { useRevenue } from '@/hooks/useRevenue'
 import { useSettings } from '@/hooks/useSettings'
 import { Button } from '@/components/ui/button'
 import { Plus, Pencil, Trash2 } from 'lucide-react'
-import { formatCurrency, formatDate, serviceLabel } from '@/lib/utils'
+import { formatCurrency, formatDate } from '@/lib/utils'
+import ServiceBadge from '@/components/shared/ServiceBadge'
 import PaymentStatusBadge from './PaymentStatusBadge'
 import RevenueFormModal from './RevenueFormModal'
 import MonthlyChart from './MonthlyChart'
@@ -70,7 +71,7 @@ export default function RevenueTable() {
                     ? <span className="text-xs px-2 py-0.5 rounded-full border font-medium bg-zinc-50 text-zinc-600 border-zinc-200">{item.projects.name}</span>
                     : <span className="text-zinc-400">—</span>}
                 </td>
-                <td className="px-3 py-2.5 text-zinc-600">{serviceLabel(item.service_type)}</td>
+                <td className="px-3 py-2.5"><ServiceBadge slug={item.service_type} /></td>
                 <td className="px-3 py-2.5 text-zinc-500 max-w-[200px] truncate">{item.description ?? '—'}</td>
                 <td className="px-3 py-2.5 text-right font-medium text-zinc-900">{formatCurrency(Number(item.amount), currency)}</td>
                 <td className="px-3 py-2.5"><PaymentStatusBadge status={item.status} /></td>

@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import type { Revenue } from '@/lib/types'
 import { useSettings } from '@/hooks/useSettings'
+import { useServices } from '@/hooks/useServices'
 import { formatCurrency } from '@/lib/utils'
 
 interface Props {
@@ -10,16 +11,19 @@ interface Props {
 
 export default function MonthlyChart({ revenue }: Props) {
   const { currency } = useSettings()
+  const { services } = useServices()
 
   const data = useMemo(() => {
-    const map: Record<string, { month: string; thumbnail: number; video_editing: number; both: number }> = {}
+    const map: Record<string, Record<string, number | string>> = {}
 
     const now = new Date()
     for (let i = 11; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
       const label = d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
-      map[key] = { month: label, thumbnail: 0, video_editing: 0, both: 0 }
+      const entry: Record<string, number | string> = { month: label }
+      services.forEach(s => { entry[s.slug] = 0 })
+      map[key] = entry
     }
 
     revenue
@@ -27,12 +31,16 @@ export default function MonthlyChart({ revenue }: Props) {
       .forEach(r => {
         const key = r.payment_date!.slice(0, 7)
         if (map[key]) {
-          map[key][r.service_type] += Number(r.amount)
+          if (map[key][r.service_type] !== undefined) {
+            (map[key][r.service_type] as number) += Number(r.amount)
+          } else {
+            map[key][r.service_type] = Number(r.amount)
+          }
         }
       })
 
     return Object.values(map)
-  }, [revenue])
+  }, [revenue, services])
 
   return (
     <div className="bg-white border border-zinc-200 rounded-lg p-5">
@@ -43,13 +51,25 @@ export default function MonthlyChart({ revenue }: Props) {
           <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} tickFormatter={v => formatCurrency(v, currency)} />
           <Tooltip
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            formatter={(value: any, name: any) => [formatCurrency(value, currency), name === 'video_editing' ? 'Video Editing' : name === 'thumbnail' ? 'Thumbnail' : 'Both'] as [string, string]}
+            formatter={(value: any, name: any) => {
+              const service = services.find(s => s.slug === name)
+              return [formatCurrency(value, currency), service?.name ?? name] as [string, string]
+            }}
             contentStyle={{ fontSize: 12, borderRadius: 6, border: '1px solid #e4e4e7' }}
           />
-          <Legend formatter={(v) => v === 'video_editing' ? 'Video Editing' : v === 'thumbnail' ? 'Thumbnail' : 'Both'} wrapperStyle={{ fontSize: 12 }} />
-          <Bar dataKey="thumbnail" stackId="a" fill="#3b82f6" radius={[0, 0, 0, 0]} />
-          <Bar dataKey="video_editing" stackId="a" fill="#a855f7" radius={[0, 0, 0, 0]} />
-          <Bar dataKey="both" stackId="a" fill="#10b981" radius={[4, 4, 0, 0]} />
+          <Legend
+            formatter={(v) => services.find(s => s.slug === v)?.name ?? v}
+            wrapperStyle={{ fontSize: 12 }}
+          />
+          {services.map((s, i) => (
+            <Bar
+              key={s.slug}
+              dataKey={s.slug}
+              stackId="a"
+              fill={s.color}
+              radius={i === services.length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0]}
+            />
+          ))}
         </BarChart>
       </ResponsiveContainer>
     </div>

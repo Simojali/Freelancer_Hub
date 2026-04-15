@@ -1,4 +1,13 @@
-export type ServiceType = 'thumbnail' | 'video_editing' | 'both'
+export type ServiceType = string
+
+export interface Service {
+  id: string
+  name: string
+  slug: string
+  color: string
+  sort_order: number
+  created_at: string
+}
 export type GigStatus = 'pending' | 'in_progress' | 'done'
 export type ProjectType = 'package' | 'gig' | 'retainer'
 export type PaymentStatus = 'paid' | 'pending'

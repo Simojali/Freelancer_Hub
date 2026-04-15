@@ -1,14 +1,9 @@
 import type { Project } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Pencil, Trash2, Eye } from 'lucide-react'
-import { serviceLabel, formatCurrency } from '@/lib/utils'
+import { formatCurrency } from '@/lib/utils'
+import ServiceBadge from '@/components/shared/ServiceBadge'
 import { useSettings } from '@/hooks/useSettings'
-
-const SERVICE_COLORS: Record<string, string> = {
-  thumbnail:     'bg-blue-50 text-blue-700 border-blue-200',
-  video_editing: 'bg-purple-50 text-purple-700 border-purple-200',
-  both:          'bg-emerald-50 text-emerald-700 border-emerald-200',
-}
 
 interface Props {
   project: Project
@@ -38,9 +33,7 @@ export default function RetainerRow({ project, onView, onBill, onEdit, onDelete 
       </div>
 
       {/* Service badge */}
-      <span className={`text-xs px-2 py-0.5 rounded-full border font-medium shrink-0 ${SERVICE_COLORS[project.service_type]}`}>
-        {serviceLabel(project.service_type)}
-      </span>
+      <ServiceBadge slug={project.service_type} />
 
       {/* Unit price */}
       {unitPrice > 0 && (

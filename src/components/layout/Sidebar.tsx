@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import { cn } from '@/lib/utils'
-import { LayoutDashboard, Users, UserCheck, FolderKanban, DollarSign, Globe } from 'lucide-react'
+import { LayoutDashboard, Users, UserCheck, FolderKanban, DollarSign, Globe, Settings } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useSettings } from '@/hooks/useSettings'
 
@@ -10,6 +10,7 @@ const nav = [
   { href: '/clients', label: 'Clients', icon: UserCheck },
   { href: '/projects', label: 'Projects', icon: FolderKanban },
   { href: '/revenue', label: 'Revenue', icon: DollarSign },
+  { href: '/settings', label: 'Settings', icon: Settings },
 ]
 
 const CURRENCIES = [

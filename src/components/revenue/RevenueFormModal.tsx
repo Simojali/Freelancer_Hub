@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import type { Revenue, Client, Project } from '@/lib/types'
 import { useClients } from '@/hooks/useClients'
 import { useProjects } from '@/hooks/useProjects'
+import { useServices } from '@/hooks/useServices'
 
 interface Props {
   open: boolean
@@ -18,7 +19,7 @@ interface Props {
 const today = new Date().toISOString().split('T')[0]
 
 const empty: Partial<Revenue> = {
-  service_type: 'thumbnail',
+  service_type: '',
   amount: undefined,
   status: 'pending',
   payment_date: today,
@@ -31,6 +32,14 @@ export default function RevenueFormModal({ open, onClose, onSave, revenue, prefi
   const [form, setForm] = useState<Partial<Revenue>>(empty)
   const { clients } = useClients()
   const { projects } = useProjects()
+  const { services } = useServices()
+
+  // Default to first service when form is empty
+  useEffect(() => {
+    if (!form.service_type && services.length > 0) {
+      setForm(f => ({ ...f, service_type: services[0].slug }))
+    }
+  }, [services])
 
   useEffect(() => {
     setForm(revenue ?? (prefill ? { ...empty, ...prefill } : empty))
@@ -98,12 +107,12 @@ export default function RevenueFormModal({ open, onClose, onSave, revenue, prefi
           </div>
           <div>
             <label className="text-xs text-zinc-500 mb-1 block">Service</label>
-            <Select value={form.service_type ?? 'thumbnail'} onValueChange={v => set('service_type', v)}>
+            <Select value={form.service_type ?? ''} onValueChange={v => set('service_type', v)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="thumbnail">Thumbnail</SelectItem>
-                <SelectItem value="video_editing">Video Editing</SelectItem>
-                <SelectItem value="both">Both</SelectItem>
+                {services.map(s => (
+                  <SelectItem key={s.slug} value={s.slug}>{s.name}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

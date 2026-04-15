@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import type { Project, Client, ProjectType, PaymentStatus } from '@/lib/types'
 import { useClients } from '@/hooks/useClients'
+import { useServices } from '@/hooks/useServices'
 
 export interface PaymentEntry {
   amount: number
@@ -24,7 +25,7 @@ const today = new Date().toISOString().split('T')[0]
 const emptyGig: Partial<Project> = {
   name: '',
   project_type: 'gig',
-  service_type: 'thumbnail',
+  service_type: '',
   status: 'pending',
   price: undefined,
   notes: '',
@@ -35,7 +36,7 @@ const emptyGig: Partial<Project> = {
 const emptyPackage: Partial<Project> = {
   name: '',
   project_type: 'package',
-  service_type: 'thumbnail',
+  service_type: '',
   status: null,
   price: undefined,
   total_units: undefined,
@@ -46,7 +47,7 @@ const emptyPackage: Partial<Project> = {
 const emptyRetainer: Partial<Project> = {
   name: '',
   project_type: 'retainer',
-  service_type: 'thumbnail',
+  service_type: '',
   status: null,
   price: undefined,
   unit_price: undefined,
@@ -61,6 +62,14 @@ export default function ProjectFormModal({ open, onClose, onSave, project }: Pro
   const [paymentDate, setPaymentDate] = useState(today)
   const [paymentAmount, setPaymentAmount] = useState<number | undefined>(undefined)
   const { clients } = useClients()
+  const { services } = useServices()
+
+  // Default to first service when creating a new project
+  useEffect(() => {
+    if (!project && !form.service_type && services.length > 0) {
+      setForm(f => ({ ...f, service_type: services[0].slug }))
+    }
+  }, [services, project])
 
   useEffect(() => {
     if (project) {
@@ -170,12 +179,12 @@ export default function ProjectFormModal({ open, onClose, onSave, project }: Pro
           </div>
           <div>
             <label className="text-xs text-zinc-500 mb-1 block">Service</label>
-            <Select value={form.service_type ?? 'thumbnail'} onValueChange={v => set('service_type', v)}>
+            <Select value={form.service_type ?? ''} onValueChange={v => set('service_type', v)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="thumbnail">Thumbnail</SelectItem>
-                <SelectItem value="video_editing">Video Editing</SelectItem>
-                <SelectItem value="both">Both</SelectItem>
+                {services.map(s => (
+                  <SelectItem key={s.slug} value={s.slug}>{s.name}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

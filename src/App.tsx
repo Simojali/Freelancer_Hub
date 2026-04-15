@@ -6,6 +6,7 @@ import ClientGrid from '@/components/clients/ClientGrid'
 import ClientProfilePage from '@/components/clients/ClientProfilePage'
 import ProjectsList from '@/components/projects/ProjectsList'
 import RevenueTable from '@/components/revenue/RevenueTable'
+import SettingsPage from '@/components/settings/SettingsPage'
 
 function DashboardPage() {
   return (
@@ -52,6 +53,15 @@ function RevenuePage() {
   )
 }
 
+function SettingsPageWrapper() {
+  return (
+    <div>
+      <h1 className="text-xl font-semibold text-zinc-900 mb-6">Settings</h1>
+      <SettingsPage />
+    </div>
+  )
+}
+
 export default function App() {
   return (
     <AppShell>
@@ -62,6 +72,7 @@ export default function App() {
         <Route path="/clients/:id" element={<ClientProfilePage />} />
         <Route path="/projects" element={<ProjectsPage />} />
         <Route path="/revenue" element={<RevenuePage />} />
+        <Route path="/settings" element={<SettingsPageWrapper />} />
       </Routes>
     </AppShell>
   )

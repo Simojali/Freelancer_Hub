@@ -17,8 +17,3 @@ export function formatDate(date: string | null): string {
   return new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
-export function serviceLabel(type: string): string {
-  if (type === 'thumbnail') return 'Thumbnail'
-  if (type === 'video_editing') return 'Video Editing'
-  return 'Both'
-}

@@ -8,7 +8,8 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Pencil, Trash2, Plus, ExternalLink } from 'lucide-react'
 import LeadFormModal from './LeadFormModal'
 import LeadDeleteDialog from './LeadDeleteDialog'
-import { serviceLabel } from '@/lib/utils'
+import ServiceBadge from '@/components/shared/ServiceBadge'
+import { useServices } from '@/hooks/useServices'
 
 const PIPELINE_COLS: { field: keyof Lead; label: string }[] = [
   { field: 'thumbnail_sample', label: 'Sample' },
@@ -23,12 +24,6 @@ const PIPELINE_COLS: { field: keyof Lead; label: string }[] = [
   { field: 'closed', label: 'Closed' },
 ]
 
-const SERVICE_COLORS: Record<string, string> = {
-  thumbnail: 'bg-blue-50 text-blue-700 border-blue-200',
-  video_editing: 'bg-purple-50 text-purple-700 border-purple-200',
-  both: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-}
-
 export default function LeadsTable() {
   const [service, setService] = useState('all')
   const [search, setSearch] = useState('')
@@ -37,6 +32,7 @@ export default function LeadsTable() {
   const [deleteLead, setDeleteLead] = useState<Lead | null>(null)
 
   const { leads, isLoading, toggleField, createLead, updateLead, deleteLead: doDelete } = useLeads(service, search)
+  const { services } = useServices()
 
   function handleSave(data: Partial<Lead>) {
     if (editLead) updateLead(editLead.id, data)
@@ -57,9 +53,9 @@ export default function LeadsTable() {
           <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Services</SelectItem>
-            <SelectItem value="thumbnail">Thumbnail</SelectItem>
-            <SelectItem value="video_editing">Video Editing</SelectItem>
-            <SelectItem value="both">Both</SelectItem>
+            {services.map(s => (
+              <SelectItem key={s.slug} value={s.slug}>{s.name}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
         <div className="ml-auto">
@@ -104,9 +100,7 @@ export default function LeadsTable() {
                   {lead.email && <div className="text-xs text-zinc-400 truncate max-w-[160px]">{lead.email}</div>}
                 </td>
                 <td className="px-3 py-2.5">
-                  <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${SERVICE_COLORS[lead.service_type]}`}>
-                    {serviceLabel(lead.service_type)}
-                  </span>
+                  <ServiceBadge slug={lead.service_type} />
                 </td>
                 <td className="px-3 py-2.5 text-zinc-600 whitespace-nowrap">
                   {lead.subs_k != null ? `${lead.subs_k}K` : '—'}

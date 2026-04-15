@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import type { Lead } from '@/lib/types'
+import { useServices } from '@/hooks/useServices'
 
 interface Props {
   open: boolean
@@ -17,7 +18,7 @@ const empty: Partial<Lead> = {
   channel_link: '',
   subs_k: undefined,
   uploads_per_month: undefined,
-  service_type: 'thumbnail',
+  service_type: '',
   ig_link: '',
   linkedin: '',
   x_link: '',
@@ -28,10 +29,18 @@ const empty: Partial<Lead> = {
 
 export default function LeadFormModal({ open, onClose, onSave, lead }: Props) {
   const [form, setForm] = useState<Partial<Lead>>(empty)
+  const { services } = useServices()
 
   useEffect(() => {
     setForm(lead ?? empty)
   }, [lead, open])
+
+  // Default to first service when creating a new lead
+  useEffect(() => {
+    if (!lead && !form.service_type && services.length > 0) {
+      setForm(f => ({ ...f, service_type: services[0].slug }))
+    }
+  }, [services, lead])
 
   function set(field: string, value: string | number | null | undefined) {
     setForm(f => ({ ...f, [field]: value }))
@@ -55,12 +64,12 @@ export default function LeadFormModal({ open, onClose, onSave, lead }: Props) {
           </div>
           <div>
             <label className="text-xs text-zinc-500 mb-1 block">Service</label>
-            <Select value={form.service_type ?? 'thumbnail'} onValueChange={v => set('service_type', v)}>
+            <Select value={form.service_type ?? ''} onValueChange={v => set('service_type', v)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="thumbnail">Thumbnail</SelectItem>
-                <SelectItem value="video_editing">Video Editing</SelectItem>
-                <SelectItem value="both">Both</SelectItem>
+                {services.map(s => (
+                  <SelectItem key={s.slug} value={s.slug}>{s.name}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

@@ -6,7 +6,7 @@ export function useLeads(service?: string, search?: string) {
   const { data, error, mutate, isLoading } = useSWR<Lead[]>(
     ['leads', service, search],
     async ([, s, q]: [string, string | undefined, string | undefined]) => {
-      let query = supabase.from('leads').select('*').order('created_at', { ascending: false })
+      let query = supabase.from('leads').select('*').order('created_at', { ascending: true })
       if (s && s !== 'all') query = query.eq('service_type', s)
       if (q) query = query.ilike('channel_name', `%${q}%`)
       const { data } = await query
@@ -20,7 +20,6 @@ export function useLeads(service?: string, search?: string) {
       false
     )
     await supabase.from('leads').update({ [field]: !currentValue }).eq('id', id)
-    mutate()
   }
 
   async function createLead(body: Partial<Lead>) {

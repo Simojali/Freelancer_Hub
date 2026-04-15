@@ -3,6 +3,7 @@ import type { Project, Revenue } from '@/lib/types'
 import { useProjects } from '@/hooks/useProjects'
 import { useRevenue } from '@/hooks/useRevenue'
 import { useSettings } from '@/hooks/useSettings'
+import { useServices } from '@/hooks/useServices'
 import { formatCurrency } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -20,6 +21,7 @@ export default function ProjectsList() {
   const { projects, isLoading, mutate, createProject, updateProject, deleteProject } = useProjects()
   const { createRevenue } = useRevenue()
   const { currency } = useSettings()
+  const { services } = useServices()
   const [typeFilter, setTypeFilter] = useState('all')
   const [serviceFilter, setServiceFilter] = useState('all')
   const [formOpen, setFormOpen] = useState(false)
@@ -102,9 +104,9 @@ export default function ProjectsList() {
           <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Services</SelectItem>
-            <SelectItem value="thumbnail">Thumbnail</SelectItem>
-            <SelectItem value="video_editing">Video Editing</SelectItem>
-            <SelectItem value="both">Both</SelectItem>
+            {services.map(s => (
+              <SelectItem key={s.slug} value={s.slug}>{s.name}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
         <div className="ml-auto">
