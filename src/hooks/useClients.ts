@@ -14,7 +14,8 @@ export function useClients() {
   }
 
   async function updateClient(id: string, body: Partial<Client>) {
-    await supabase.from('clients').update(body).eq('id', id)
+    const { id: _id, created_at: _ca, updated_at: _ua, ...updateBody } = body as Client
+    await supabase.from('clients').update(updateBody).eq('id', id)
     mutate()
   }
 

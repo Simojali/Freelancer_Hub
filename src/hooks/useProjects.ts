@@ -22,7 +22,8 @@ export function useProjects() {
   }
 
   async function updateProject(id: string, body: Partial<Project>) {
-    const { delivery_count: _dc, clients: _cl, ...updateBody } = body as Project & { delivery_count?: number }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { delivery_count: _dc, clients: _cl, deliveries: _dv, id: _id, created_at: _ca, updated_at: _ua, ...updateBody } = body as any
     mutate(
       (projects) => projects?.map(p => p.id === id ? { ...p, ...body } : p),
       false

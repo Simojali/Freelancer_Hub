@@ -28,7 +28,8 @@ export function useLeads(service?: string, search?: string) {
   }
 
   async function updateLead(id: string, body: Partial<Lead>) {
-    await supabase.from('leads').update(body).eq('id', id)
+    const { id: _id, created_at: _ca, updated_at: _ua, ...updateBody } = body as Lead
+    await supabase.from('leads').update(updateBody).eq('id', id)
     mutate()
   }
 

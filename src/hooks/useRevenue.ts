@@ -15,7 +15,7 @@ export function useRevenue() {
   }
 
   async function updateRevenue(id: string, body: Partial<Revenue>) {
-    const { projects: _p, clients: _c, ...updateBody } = body as Revenue
+    const { projects: _p, clients: _c, id: _id, created_at: _ca, updated_at: _ua, ...updateBody } = body as Revenue
     await supabase.from('revenue').update(updateBody).eq('id', id)
     mutate()
   }
