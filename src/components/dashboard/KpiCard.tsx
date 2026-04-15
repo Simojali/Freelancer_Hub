@@ -6,9 +6,10 @@ interface Props {
   value: string | number
   icon: LucideIcon
   iconColor?: string
+  sub?: string
 }
 
-export default function KpiCard({ label, value, icon: Icon, iconColor = 'text-zinc-400' }: Props) {
+export default function KpiCard({ label, value, icon: Icon, iconColor = 'text-zinc-400', sub }: Props) {
   return (
     <Card className="border border-zinc-200 shadow-none">
       <CardContent className="p-5">
@@ -17,6 +18,7 @@ export default function KpiCard({ label, value, icon: Icon, iconColor = 'text-zi
           <Icon className={`w-4 h-4 ${iconColor}`} />
         </div>
         <div className="text-2xl font-semibold text-zinc-900">{value}</div>
+        {sub && <div className="text-xs text-zinc-400 mt-1">{sub}</div>}
       </CardContent>
     </Card>
   )

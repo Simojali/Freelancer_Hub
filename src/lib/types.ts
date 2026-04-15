@@ -104,6 +104,7 @@ export interface DashboardData {
     conversionRate: string
     activeClients: number
     monthlyRevenue: number
+    retainerOwed: number
     openProjects: number
   }
   pipeline: {

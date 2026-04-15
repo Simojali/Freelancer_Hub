@@ -2,7 +2,7 @@ import { useDashboard } from '@/hooks/useDashboard'
 import KpiCard from './KpiCard'
 import PipelineFunnel from './PipelineFunnel'
 import RecentActivity from './RecentActivity'
-import { Users, UserCheck, DollarSign, FolderKanban, TrendingUp } from 'lucide-react'
+import { Users, UserCheck, DollarSign, FolderKanban, TrendingUp, Clock } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
 import { useSettings } from '@/hooks/useSettings'
 
@@ -27,15 +27,34 @@ export default function DashboardView() {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-        <KpiCard label="Total Leads" value={kpis.totalLeads} icon={Users} iconColor="text-zinc-400" />
-        <KpiCard label="Conversion" value={kpis.conversionRate} icon={TrendingUp} iconColor="text-emerald-500" />
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+        <KpiCard
+          label="Prospects"
+          value={kpis.totalLeads - pipeline.sample}
+          sub={`${pipeline.sample} in outreach`}
+          icon={Users}
+          iconColor="text-zinc-400"
+        />
+        <KpiCard
+          label="Close Rate"
+          value={pipeline.sample > 0 ? `${Math.round((pipeline.closed / pipeline.sample) * 100)}%` : '0%'}
+          sub={`${pipeline.closed} closed`}
+          icon={TrendingUp}
+          iconColor="text-emerald-500"
+        />
         <KpiCard label="Active Clients" value={kpis.activeClients} icon={UserCheck} iconColor="text-blue-500" />
         <KpiCard label="This Month" value={formatCurrency(kpis.monthlyRevenue, currency)} icon={DollarSign} iconColor="text-emerald-500" />
+        <KpiCard
+          label="Retainers Owed"
+          value={formatCurrency(kpis.retainerOwed, currency)}
+          sub="unbilled deliveries"
+          icon={Clock}
+          iconColor="text-amber-500"
+        />
         <KpiCard label="Open Projects" value={kpis.openProjects} icon={FolderKanban} iconColor="text-amber-500" />
       </div>
 
-      <PipelineFunnel pipeline={pipeline} total={kpis.totalLeads} />
+      <PipelineFunnel pipeline={pipeline} total={pipeline.sample} />
 
       <RecentActivity recentProjects={recentProjects} recentPayments={recentPayments} />
     </div>

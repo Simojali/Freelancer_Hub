@@ -12,6 +12,7 @@ export function useDashboard() {
       closedLeadsRes,
       activeClientsRes,
       monthlyRevenueRes,
+      retainerProjectsRes,
       openGigsRes,
       openPackagesRes,
       openRetainersRes,
@@ -30,6 +31,7 @@ export function useDashboard() {
       supabase.from('leads').select('*', { count: 'exact', head: true }).eq('closed', true),
       supabase.from('clients').select('*', { count: 'exact', head: true }),
       supabase.from('revenue').select('amount').eq('status', 'paid').gte('payment_date', firstOfMonth),
+      supabase.from('projects').select('unit_price, deliveries(count)').eq('project_type', 'retainer'),
       supabase.from('projects').select('*', { count: 'exact', head: true }).eq('project_type', 'gig').neq('status', 'done'),
       supabase.from('projects').select('*', { count: 'exact', head: true }).eq('project_type', 'package'),
       supabase.from('projects').select('*', { count: 'exact', head: true }).eq('project_type', 'retainer'),
@@ -49,6 +51,10 @@ export function useDashboard() {
     const closedLeads = closedLeadsRes.count ?? 0
     const conversionRate = totalLeads > 0 ? ((closedLeads / totalLeads) * 100).toFixed(1) : '0.0'
     const monthlyRevenue = (monthlyRevenueRes.data ?? []).reduce((sum, r) => sum + Number(r.amount), 0)
+    const retainerOwed = (retainerProjectsRes.data ?? []).reduce((sum, r) => {
+      const deliveryCount = (r.deliveries as { count: number }[] | null)?.[0]?.count ?? 0
+      return sum + deliveryCount * Number(r.unit_price ?? 0)
+    }, 0)
 
     return {
       kpis: {
@@ -56,6 +62,7 @@ export function useDashboard() {
         conversionRate: `${conversionRate}%`,
         activeClients: activeClientsRes.count ?? 0,
         monthlyRevenue,
+        retainerOwed,
         openProjects: (openGigsRes.count ?? 0) + (openPackagesRes.count ?? 0) + (openRetainersRes.count ?? 0),
       },
       pipeline: {
