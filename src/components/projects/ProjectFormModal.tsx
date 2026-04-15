@@ -168,7 +168,13 @@ export default function ProjectFormModal({ open, onClose, onSave, project }: Pro
           <div>
             <label className="text-xs text-zinc-500 mb-1 block">Client</label>
             <Select value={form.client_id ?? 'none'} onValueChange={v => set('client_id', v === 'none' ? undefined : v)}>
-              <SelectTrigger><SelectValue placeholder="Select client" /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue placeholder="Select client">
+                  {form.client_id
+                    ? (clients.find((c: Client) => c.id === form.client_id)?.client_name ?? '…')
+                    : undefined}
+                </SelectValue>
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">No client</SelectItem>
                 {clients.map((c: Client) => (

@@ -63,7 +63,7 @@ export default function ClientProfilePage() {
   const packages = projects.filter(p => p.project_type === 'package')
   const gigs = projects.filter(p => p.project_type === 'gig')
   const totalPaid = revenue.filter(r => r.status === 'paid').reduce((s, r) => s + Number(r.amount), 0)
-  const totalPending = revenue.filter(r => r.status === 'pending').reduce((s, r) => s + Number(r.amount), 0)
+  const retainerOwed = retainers.reduce((s, p) => s + (p.delivery_count ?? 0) * Number(p.unit_price ?? 0), 0)
 
   return (
     <div className="space-y-6">
@@ -107,8 +107,8 @@ export default function ClientProfilePage() {
           <div className="text-xs text-zinc-500 mt-0.5">Total Paid</div>
         </div>
         <div className="bg-white border border-zinc-200 rounded-lg px-4 py-3 text-center">
-          <div className="text-xl font-semibold text-amber-500">{formatCurrency(totalPending, currency)}</div>
-          <div className="text-xs text-zinc-500 mt-0.5">Pending</div>
+          <div className="text-xl font-semibold text-amber-500">{formatCurrency(retainerOwed, currency)}</div>
+          <div className="text-xs text-zinc-500 mt-0.5">Retainer Owed</div>
         </div>
       </div>
 

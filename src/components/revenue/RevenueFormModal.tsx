@@ -81,7 +81,13 @@ export default function RevenueFormModal({ open, onClose, onSave, revenue, prefi
                 set('project_id', null)
               }}
             >
-              <SelectTrigger><SelectValue placeholder="Select client" /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue placeholder="Select client">
+                  {form.client_id
+                    ? (clients.find((c: Client) => c.id === form.client_id)?.client_name ?? '…')
+                    : undefined}
+                </SelectValue>
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">No client</SelectItem>
                 {clients.map((c: Client) => (
@@ -96,7 +102,13 @@ export default function RevenueFormModal({ open, onClose, onSave, revenue, prefi
               value={form.project_id ?? 'none'}
               onValueChange={v => set('project_id', v === 'none' ? null : v)}
             >
-              <SelectTrigger><SelectValue placeholder="Select project" /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue placeholder="Select project">
+                  {form.project_id
+                    ? (clientProjects.find((p: Project) => p.id === form.project_id)?.name ?? '…')
+                    : undefined}
+                </SelectValue>
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">No project</SelectItem>
                 {clientProjects.map((p: Project) => (
