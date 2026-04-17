@@ -1,13 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { Project, Revenue } from '@/lib/types'
 import { useProjects } from '@/hooks/useProjects'
 import { useRevenue } from '@/hooks/useRevenue'
 import { useSettings } from '@/hooks/useSettings'
-import { useServices } from '@/hooks/useServices'
 import { formatCurrency, cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Plus, ChevronDown, Layers, Users } from 'lucide-react'
+import { ChevronDown } from 'lucide-react'
 import PackageRow from './PackageRow'
 import GigRow from './GigRow'
 import RetainerRow from './RetainerRow'
@@ -17,20 +14,41 @@ import RetainerDetailModal from './RetainerDetailModal'
 import RevenueFormModal from '@/components/revenue/RevenueFormModal'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 
-type TabType = 'all' | 'retainer' | 'package' | 'gig'
-type GroupBy = 'type' | 'client'
+export type TabType = 'all' | 'retainer' | 'package' | 'gig'
+export type GroupBy = 'type' | 'client'
 
-export default function ProjectsList() {
+interface Props {
+  activeTab: TabType
+  setActiveTab: (t: TabType) => void
+  serviceFilter: string
+  setServiceFilter: (s: string) => void
+  groupBy: GroupBy
+  setGroupBy: (g: GroupBy) => void
+  showCompleted: boolean
+  setShowCompleted: (v: boolean | ((prev: boolean) => boolean)) => void
+  /** Parent sets this to open the add form; ProjectsList resets it after opening */
+  formOpen: boolean
+  setFormOpen: (v: boolean) => void
+  editProject: Project | null
+  setEditProject: (p: Project | null) => void
+  onCompletedCount: (n: number) => void
+  onTabCounts: (c: { all: number; retainer: number; package: number; gig: number }) => void
+}
+
+export default function ProjectsList({
+  activeTab, setActiveTab,
+  serviceFilter, setServiceFilter,
+  groupBy, setGroupBy,
+  showCompleted, setShowCompleted,
+  formOpen, setFormOpen,
+  editProject, setEditProject,
+  onCompletedCount,
+  onTabCounts,
+}: Props) {
   const { projects, isLoading, mutate, createProject, updateProject, deleteProject } = useProjects()
   const { createRevenue } = useRevenue()
   const { currency } = useSettings()
-  const { services } = useServices()
-  const [activeTab, setActiveTab] = useState<TabType>('all')
-  const [serviceFilter, setServiceFilter] = useState('all')
-  const [groupBy, setGroupBy] = useState<GroupBy>('type')
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
-  const [formOpen, setFormOpen] = useState(false)
-  const [editProject, setEditProject] = useState<Project | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Project | null>(null)
   const [detailProject, setDetailProject] = useState<Project | null>(null)
   const [detailRetainer, setDetailRetainer] = useState<Project | null>(null)
@@ -45,20 +63,32 @@ export default function ProjectsList() {
     })
   }
 
-  // Counts for tab badges (service filter applied)
+  // Base pool: service filter, then optionally hide done gigs
   const serviceFiltered = projects.filter(p =>
     serviceFilter === 'all' || p.service_type === serviceFilter
   )
+  const pool = showCompleted
+    ? serviceFiltered
+    : serviceFiltered.filter(p => !(p.project_type === 'gig' && p.status === 'done'))
+
+  // Tab counts always reflect current showCompleted state
   const counts = {
-    all: serviceFiltered.length,
-    retainer: serviceFiltered.filter(p => p.project_type === 'retainer').length,
-    package: serviceFiltered.filter(p => p.project_type === 'package').length,
-    gig: serviceFiltered.filter(p => p.project_type === 'gig').length,
+    all:      pool.length,
+    retainer: pool.filter(p => p.project_type === 'retainer').length,
+    package:  pool.filter(p => p.project_type === 'package').length,
+    gig:      pool.filter(p => p.project_type === 'gig').length,
   }
 
-  const filtered = serviceFiltered.filter(p =>
-    activeTab === 'all' || p.project_type === activeTab
-  )
+  // Number of done gigs in the full service-filtered set (for toggle badge)
+  const completedCount = serviceFiltered.filter(p =>
+    p.project_type === 'gig' && p.status === 'done'
+  ).length
+
+  // Inform parent of counts so tabs + completed button stay in sync
+  useEffect(() => { onCompletedCount(completedCount) }, [completedCount])
+  useEffect(() => { onTabCounts(counts) }, [counts.all, counts.retainer, counts.package, counts.gig])
+
+  const filtered = pool.filter(p => activeTab === 'all' || p.project_type === activeTab)
 
   const retainers = filtered.filter(p => p.project_type === 'retainer')
   const packages = filtered.filter(p => p.project_type === 'package')
@@ -136,76 +166,8 @@ export default function ProjectsList() {
     })
   }
 
-  const TABS: { key: TabType; label: string; color: string; activeClass: string }[] = [
-    { key: 'all',      label: 'All',       color: 'bg-zinc-400',   activeClass: 'border-zinc-800 text-zinc-900' },
-    { key: 'retainer', label: 'Retainers', color: 'bg-teal-400',   activeClass: 'border-teal-500 text-teal-700' },
-    { key: 'package',  label: 'Packages',  color: 'bg-violet-400', activeClass: 'border-violet-500 text-violet-700' },
-    { key: 'gig',      label: 'Gigs',      color: 'bg-zinc-300',   activeClass: 'border-zinc-500 text-zinc-700' },
-  ]
-
   return (
     <div className="space-y-4">
-      {/* Tabs + actions row */}
-      <div className="flex items-center justify-between gap-4">
-        {/* Tabs */}
-        <div className="flex items-center border-b border-zinc-200 gap-0">
-          {TABS.map(tab => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              className={cn(
-                'flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap',
-                activeTab === tab.key
-                  ? tab.activeClass
-                  : 'border-transparent text-zinc-400 hover:text-zinc-600'
-              )}
-            >
-              {tab.key !== 'all' && (
-                <span className={cn('w-2 h-2 rounded-full shrink-0', tab.color)} />
-              )}
-              {tab.label}
-              <span className={cn(
-                'text-xs px-1.5 py-0.5 rounded-full font-normal',
-                activeTab === tab.key ? 'bg-zinc-100 text-zinc-600' : 'text-zinc-400'
-              )}>
-                {counts[tab.key]}
-              </span>
-            </button>
-          ))}
-        </div>
-
-        {/* Right side: group toggle + service filter + add */}
-        <div className="flex items-center gap-2 shrink-0">
-          {/* Group by toggle */}
-          <div className="flex items-center rounded-md border border-zinc-200 overflow-hidden text-xs">
-            <button
-              onClick={() => setGroupBy('type')}
-              className={cn('flex items-center gap-1.5 px-2.5 py-1.5 transition-colors', groupBy === 'type' ? 'bg-zinc-900 text-white' : 'text-zinc-500 hover:bg-zinc-50')}
-            >
-              <Layers className="w-3 h-3" /> Type
-            </button>
-            <button
-              onClick={() => setGroupBy('client')}
-              className={cn('flex items-center gap-1.5 px-2.5 py-1.5 transition-colors border-l border-zinc-200', groupBy === 'client' ? 'bg-zinc-900 text-white' : 'text-zinc-500 hover:bg-zinc-50')}
-            >
-              <Users className="w-3 h-3" /> Client
-            </button>
-          </div>
-
-          <Select value={serviceFilter} onValueChange={v => v && setServiceFilter(v)}>
-            <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Services</SelectItem>
-              {services.map(s => (
-                <SelectItem key={s.slug} value={s.slug}>{s.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Button size="sm" onClick={() => { setEditProject(null); setFormOpen(true) }}>
-            <Plus className="w-4 h-4 mr-1" /> Add Project
-          </Button>
-        </div>
-      </div>
 
       {isLoading && <div className="text-sm text-zinc-400 py-8 text-center">Loading...</div>}
 
