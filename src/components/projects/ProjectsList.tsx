@@ -4,7 +4,7 @@ import { useProjects } from '@/hooks/useProjects'
 import { useRevenue } from '@/hooks/useRevenue'
 import { useSettings } from '@/hooks/useSettings'
 import { useServices } from '@/hooks/useServices'
-import { formatCurrency } from '@/lib/utils'
+import { formatCurrency, cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Plus } from 'lucide-react'
@@ -17,12 +17,14 @@ import RetainerDetailModal from './RetainerDetailModal'
 import RevenueFormModal from '@/components/revenue/RevenueFormModal'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 
+type TabType = 'all' | 'retainer' | 'package' | 'gig'
+
 export default function ProjectsList() {
   const { projects, isLoading, mutate, createProject, updateProject, deleteProject } = useProjects()
   const { createRevenue } = useRevenue()
   const { currency } = useSettings()
   const { services } = useServices()
-  const [typeFilter, setTypeFilter] = useState('all')
+  const [activeTab, setActiveTab] = useState<TabType>('all')
   const [serviceFilter, setServiceFilter] = useState('all')
   const [formOpen, setFormOpen] = useState(false)
   const [editProject, setEditProject] = useState<Project | null>(null)
@@ -32,11 +34,20 @@ export default function ProjectsList() {
   const [billPrefill, setBillPrefill] = useState<Partial<Revenue> | undefined>(undefined)
   const [revenueOpen, setRevenueOpen] = useState(false)
 
-  const filtered = projects.filter(p => {
-    if (typeFilter !== 'all' && p.project_type !== typeFilter) return false
-    if (serviceFilter !== 'all' && p.service_type !== serviceFilter) return false
-    return true
-  })
+  // Counts for tab badges (service filter applied)
+  const serviceFiltered = projects.filter(p =>
+    serviceFilter === 'all' || p.service_type === serviceFilter
+  )
+  const counts = {
+    all: serviceFiltered.length,
+    retainer: serviceFiltered.filter(p => p.project_type === 'retainer').length,
+    package: serviceFiltered.filter(p => p.project_type === 'package').length,
+    gig: serviceFiltered.filter(p => p.project_type === 'gig').length,
+  }
+
+  const filtered = serviceFiltered.filter(p =>
+    activeTab === 'all' || p.project_type === activeTab
+  )
 
   const retainers = filtered.filter(p => p.project_type === 'retainer')
   const packages = filtered.filter(p => p.project_type === 'package')
@@ -87,29 +98,55 @@ export default function ProjectsList() {
     })
   }
 
+  const TABS: { key: TabType; label: string; color: string; activeClass: string }[] = [
+    { key: 'all',      label: 'All',       color: 'bg-zinc-400',   activeClass: 'border-zinc-800 text-zinc-900' },
+    { key: 'retainer', label: 'Retainers', color: 'bg-teal-400',   activeClass: 'border-teal-500 text-teal-700' },
+    { key: 'package',  label: 'Packages',  color: 'bg-violet-400', activeClass: 'border-violet-500 text-violet-700' },
+    { key: 'gig',      label: 'Gigs',      color: 'bg-zinc-300',   activeClass: 'border-zinc-500 text-zinc-700' },
+  ]
+
   return (
     <div className="space-y-4">
-      {/* Toolbar */}
-      <div className="flex items-center gap-3">
-        <Select value={typeFilter} onValueChange={v => v && setTypeFilter(v)}>
-          <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Types</SelectItem>
-            <SelectItem value="retainer">Retainers</SelectItem>
-            <SelectItem value="package">Packages</SelectItem>
-            <SelectItem value="gig">Gigs</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={serviceFilter} onValueChange={v => v && setServiceFilter(v)}>
-          <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Services</SelectItem>
-            {services.map(s => (
-              <SelectItem key={s.slug} value={s.slug}>{s.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <div className="ml-auto">
+      {/* Tabs + actions row */}
+      <div className="flex items-center justify-between gap-4">
+        {/* Tabs */}
+        <div className="flex items-center border-b border-zinc-200 gap-0">
+          {TABS.map(tab => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={cn(
+                'flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap',
+                activeTab === tab.key
+                  ? tab.activeClass
+                  : 'border-transparent text-zinc-400 hover:text-zinc-600'
+              )}
+            >
+              {tab.key !== 'all' && (
+                <span className={cn('w-2 h-2 rounded-full shrink-0', tab.color)} />
+              )}
+              {tab.label}
+              <span className={cn(
+                'text-xs px-1.5 py-0.5 rounded-full font-normal',
+                activeTab === tab.key ? 'bg-zinc-100 text-zinc-600' : 'text-zinc-400'
+              )}>
+                {counts[tab.key]}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        {/* Right side: service filter + add */}
+        <div className="flex items-center gap-2 shrink-0">
+          <Select value={serviceFilter} onValueChange={v => v && setServiceFilter(v)}>
+            <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Services</SelectItem>
+              {services.map(s => (
+                <SelectItem key={s.slug} value={s.slug}>{s.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Button size="sm" onClick={() => { setEditProject(null); setFormOpen(true) }}>
             <Plus className="w-4 h-4 mr-1" /> Add Project
           </Button>
@@ -125,7 +162,7 @@ export default function ProjectsList() {
       {/* Retainers section */}
       {retainers.length > 0 && (
         <div className="space-y-2">
-          {typeFilter === 'all' && (
+          {activeTab === 'all' && (
             <div className="flex items-center gap-2 mb-1">
               <div className="w-1.5 h-1.5 rounded-full bg-teal-400" />
               <span className="text-xs font-medium text-zinc-500 uppercase tracking-wide">Retainers</span>
@@ -147,8 +184,8 @@ export default function ProjectsList() {
       {/* Packages section */}
       {packages.length > 0 && (
         <div className="space-y-2">
-          {(typeFilter === 'all') && (
-            <div className="flex items-center gap-2 mb-1">
+          {activeTab === 'all' && (
+            <div className="flex items-center gap-2 mb-1 mt-2">
               <div className="w-1.5 h-1.5 rounded-full bg-violet-400" />
               <span className="text-xs font-medium text-zinc-500 uppercase tracking-wide">Packages</span>
             </div>
@@ -169,8 +206,8 @@ export default function ProjectsList() {
       {/* Gigs section */}
       {gigs.length > 0 && (
         <div className="space-y-2">
-          {(typeFilter === 'all') && (
-            <div className="flex items-center gap-2 mb-1 mt-4">
+          {activeTab === 'all' && (
+            <div className="flex items-center gap-2 mb-1 mt-2">
               <div className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
               <span className="text-xs font-medium text-zinc-500 uppercase tracking-wide">Gigs</span>
             </div>
