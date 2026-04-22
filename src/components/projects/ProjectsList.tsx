@@ -30,6 +30,11 @@ interface Props {
   setShowCompleted: (v: boolean | ((prev: boolean) => boolean)) => void
   search: string
   sortKey: SortKey
+  /** Inclusive YYYY-MM-DD bounds applied to project.created_at */
+  dateFrom?: string
+  dateTo?: string
+  /** If true, only gigs that are past their due date and not done */
+  overdueOnly?: boolean
   formOpen: boolean
   setFormOpen: (v: boolean) => void
   editProject: Project | null
@@ -64,6 +69,9 @@ export default function ProjectsList({
   showCompleted,
   search,
   sortKey,
+  dateFrom,
+  dateTo,
+  overdueOnly = false,
   formOpen, setFormOpen,
   editProject, setEditProject,
 }: Props) {
@@ -93,7 +101,8 @@ export default function ProjectsList({
    */
   const { filtered, retainers, packages, gigs, clientGroups } = useMemo(() => {
     const q = search.trim().toLowerCase()
-    // Single iteration: apply service, search, showCompleted, and tab filters at once.
+    const today = new Date().toISOString().split('T')[0]
+    // Single iteration: apply service, search, date, overdue, showCompleted, and tab at once.
     const filtered: Project[] = []
     for (const p of projects) {
       if (serviceFilter !== 'all' && p.service_type !== serviceFilter) continue
@@ -101,6 +110,15 @@ export default function ProjectsList({
         const nameHit   = p.name.toLowerCase().includes(q)
         const clientHit = (p.clients?.client_name ?? '').toLowerCase().includes(q)
         if (!nameHit && !clientHit) continue
+      }
+      // Date range on created_at (inclusive)
+      const created = p.created_at.slice(0, 10)
+      if (dateFrom && created < dateFrom) continue
+      if (dateTo   && created > dateTo)   continue
+      // Overdue: only gigs past their due_date and not done
+      if (overdueOnly) {
+        if (p.project_type !== 'gig') continue
+        if (!p.due_date || p.due_date >= today || p.status === 'done') continue
       }
       if (!showCompleted && p.project_type === 'gig' && p.status === 'done') continue
       if (activeTab !== 'all' && p.project_type !== activeTab) continue
@@ -134,7 +152,7 @@ export default function ProjectsList({
     }
 
     return { filtered: sorted, retainers, packages, gigs, clientGroups }
-  }, [projects, serviceFilter, search, showCompleted, activeTab, sortKey, groupBy])
+  }, [projects, serviceFilter, search, showCompleted, activeTab, sortKey, groupBy, dateFrom, dateTo, overdueOnly])
 
   // Prune stale keys from the collapsed set whenever groups change.
   // Keeps the set from growing unbounded as clients come and go.
@@ -212,10 +230,22 @@ export default function ProjectsList({
       {!isLoading && filtered.length === 0 && (
         <EmptyState
           icon={FolderKanban}
-          title={activeTab === 'all' ? 'No projects yet' : `No ${activeTab}s in this view`}
-          description={activeTab === 'all'
-            ? 'Projects you create will appear here. Start by adding a gig, package, or retainer.'
-            : 'Try another tab, clear the service filter, or toggle Show Completed.'}
+          title={
+            overdueOnly
+              ? 'Nothing overdue'
+              : (dateFrom || dateTo)
+                ? 'No projects in this range'
+                : activeTab === 'all' ? 'No projects yet' : `No ${activeTab}s in this view`
+          }
+          description={
+            overdueOnly
+              ? 'No gigs are past their due date. Nice work keeping up.'
+              : (dateFrom || dateTo)
+                ? 'Try broadening the date range or clearing other filters.'
+                : activeTab === 'all'
+                  ? 'Projects you create will appear here. Start by adding a gig, package, or retainer.'
+                  : 'Try another tab, clear the service filter, or toggle Show Completed.'
+          }
           size="lg"
         />
       )}

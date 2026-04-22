@@ -14,10 +14,38 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
-import { Plus, Layers, Users, CheckCheck, Search, ArrowUpDown } from 'lucide-react'
+import { Plus, Layers, Users, CheckCheck, Search, ArrowUpDown, Calendar, AlertTriangle } from 'lucide-react'
 import type { Project } from '@/lib/types'
 
 export type SortKey = 'newest' | 'oldest' | 'price_desc' | 'price_asc' | 'due_date' | 'name'
+export type DateRange = 'all' | 'today' | 'week' | 'month' | 'last_month' | 'last_3_months' | 'year' | 'custom'
+
+/** Resolve a preset DateRange to [from, to] (inclusive, YYYY-MM-DD). */
+export function rangeBounds(preset: DateRange, customFrom?: string, customTo?: string): { from?: string; to?: string } {
+  if (preset === 'all') return {}
+  if (preset === 'custom') return { from: customFrom || undefined, to: customTo || undefined }
+  const now = new Date()
+  const today = now.toISOString().split('T')[0]
+  const fmt = (d: Date) => d.toISOString().split('T')[0]
+  switch (preset) {
+    case 'today': return { from: today, to: today }
+    case 'week': {
+      const start = new Date(now); start.setDate(now.getDate() - now.getDay())
+      return { from: fmt(start), to: today }
+    }
+    case 'month':
+      return { from: fmt(new Date(now.getFullYear(), now.getMonth(), 1)), to: today }
+    case 'last_month':
+      return {
+        from: fmt(new Date(now.getFullYear(), now.getMonth() - 1, 1)),
+        to:   fmt(new Date(now.getFullYear(), now.getMonth(), 0)),
+      }
+    case 'last_3_months':
+      return { from: fmt(new Date(now.getFullYear(), now.getMonth() - 3, now.getDate())), to: today }
+    case 'year':
+      return { from: fmt(new Date(now.getFullYear(), 0, 1)), to: today }
+  }
+}
 
 function DashboardPage() {
   return (
@@ -62,6 +90,17 @@ const SORT_OPTIONS: { value: SortKey; label: string }[] = [
   { value: 'due_date',   label: 'Due date' },
 ]
 
+const DATE_RANGE_OPTIONS: { value: DateRange; label: string }[] = [
+  { value: 'all',           label: 'All time' },
+  { value: 'today',         label: 'Today' },
+  { value: 'week',          label: 'This week' },
+  { value: 'month',         label: 'This month' },
+  { value: 'last_month',    label: 'Last month' },
+  { value: 'last_3_months', label: 'Last 3 months' },
+  { value: 'year',          label: 'This year' },
+  { value: 'custom',        label: 'Custom range…' },
+]
+
 function ProjectsPage() {
   const { services } = useServices()
   const { projects } = useProjects()
@@ -74,6 +113,10 @@ function ProjectsPage() {
   const showCompleted = searchParams.get('completed') === '1'
   const search        = searchParams.get('q') ?? ''
   const sortKey       = (searchParams.get('sort') as SortKey | null) ?? 'newest'
+  const dateRange     = (searchParams.get('dateRange') as DateRange | null) ?? 'all'
+  const customFrom    = searchParams.get('from') ?? ''
+  const customTo      = searchParams.get('to') ?? ''
+  const overdueOnly   = searchParams.get('overdue') === '1'
 
   function updateParam(key: string, value: string, defaultValue: string) {
     const next = new URLSearchParams(searchParams)
@@ -86,22 +129,45 @@ function ProjectsPage() {
   const setGroupBy       = (g: GroupBy)  => updateParam('group', g, 'type')
   const setSearch        = (q: string)   => updateParam('q', q, '')
   const setSort          = (s: SortKey)  => updateParam('sort', s, 'newest')
+  const setDateRange     = (r: DateRange) => {
+    updateParam('dateRange', r, 'all')
+    // When leaving custom, clear any lingering from/to
+    if (r !== 'custom') {
+      const next = new URLSearchParams(searchParams)
+      if (r === 'all') next.delete('dateRange'); else next.set('dateRange', r)
+      next.delete('from'); next.delete('to')
+      setSearchParams(next, { replace: true })
+    }
+  }
+  const setCustomFrom    = (d: string)   => updateParam('from', d, '')
+  const setCustomTo      = (d: string)   => updateParam('to', d, '')
   const setShowCompleted = (v: boolean | ((prev: boolean) => boolean)) => {
     const next = typeof v === 'function' ? v(showCompleted) : v
     updateParam('completed', next ? '1' : '0', '0')
   }
+  const setOverdueOnly   = (v: boolean) => updateParam('overdue', v ? '1' : '0', '0')
+
+  // Resolved date bounds applied to the filter
+  const { from: dateFrom, to: dateTo } = rangeBounds(dateRange, customFrom, customTo)
 
   const [formOpen, setFormOpen]       = useState(false)
   const [editProject, setEditProject] = useState<Project | null>(null)
 
   // Tab counts + completed count derived directly from the hook data — no
   // child-to-parent callback plumbing needed. Respects current search +
-  // service filter so counts stay meaningful.
+  // service + date filters so counts stay meaningful.
+  const todayStr = new Date().toISOString().split('T')[0]
   const visibleForCounts = projects.filter(p => {
     if (serviceFilter !== 'all' && p.service_type !== serviceFilter) return false
     if (search) {
       const q = search.toLowerCase()
       if (!p.name.toLowerCase().includes(q) && !(p.clients?.client_name ?? '').toLowerCase().includes(q)) return false
+    }
+    if (dateFrom && p.created_at.slice(0, 10) < dateFrom) return false
+    if (dateTo   && p.created_at.slice(0, 10) > dateTo)   return false
+    if (overdueOnly) {
+      if (p.project_type !== 'gig') return false
+      if (!p.due_date || p.due_date >= todayStr || p.status === 'done') return false
     }
     return true
   })
@@ -147,6 +213,33 @@ function ProjectsPage() {
             </SelectContent>
           </Select>
 
+          {/* Date range */}
+          <Select value={dateRange} onValueChange={v => v && setDateRange(v as DateRange)}>
+            <SelectTrigger className="w-36 text-xs">
+              <Calendar className="w-3 h-3 mr-1" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {DATE_RANGE_OPTIONS.map(o => (
+                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {/* Overdue pill — only meaningful when gigs are in view */}
+          {(activeTab === 'all' || activeTab === 'gig') && (
+            <button
+              onClick={() => setOverdueOnly(!overdueOnly)}
+              className={cn('flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border text-xs transition-colors',
+                overdueOnly
+                  ? 'bg-red-600 text-white border-red-600'
+                  : 'border-zinc-200 text-zinc-500 hover:bg-zinc-50')}
+            >
+              <AlertTriangle className="w-3 h-3" />
+              Overdue
+            </button>
+          )}
+
           {/* Group by */}
           <div className="flex items-center rounded-md border border-zinc-200 overflow-hidden text-xs">
             <button onClick={() => setGroupBy('type')}
@@ -189,6 +282,33 @@ function ProjectsPage() {
         </div>
       </div>
 
+      {/* Custom date range row — only visible when dateRange === 'custom' */}
+      {dateRange === 'custom' && (
+        <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-500 bg-zinc-50 border border-zinc-200 rounded-md px-3 py-2">
+          <Calendar className="w-3.5 h-3.5 text-zinc-400" />
+          <span>From</span>
+          <Input
+            type="date"
+            value={customFrom}
+            onChange={e => setCustomFrom(e.target.value)}
+            className="h-7 w-36 text-xs"
+          />
+          <span>to</span>
+          <Input
+            type="date"
+            value={customTo}
+            onChange={e => setCustomTo(e.target.value)}
+            className="h-7 w-36 text-xs"
+          />
+          <button
+            onClick={() => setDateRange('all')}
+            className="ml-auto text-zinc-400 hover:text-zinc-700 underline-offset-2 hover:underline"
+          >
+            Clear
+          </button>
+        </div>
+      )}
+
       {/* Tabs */}
       <div className="flex items-center border-b border-zinc-200 overflow-x-auto">
         {TABS.map(tab => (
@@ -212,6 +332,9 @@ function ProjectsPage() {
         showCompleted={showCompleted} setShowCompleted={setShowCompleted}
         search={search}
         sortKey={sortKey}
+        dateFrom={dateFrom}
+        dateTo={dateTo}
+        overdueOnly={overdueOnly}
         formOpen={formOpen}           setFormOpen={setFormOpen}
         editProject={editProject}     setEditProject={setEditProject}
       />
