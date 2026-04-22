@@ -18,10 +18,12 @@ export function useDashboard() {
     const [leadsRes, projectsRes, clientsRes, monthlyRevenueRes, recentPaymentsRes] = await Promise.all([
       // All pipeline booleans in a single payload
       supabase.from('leads').select('thumbnail_sample, before_after_made, followed_engaged, contacted_ig, contacted_email, seen, responded, closed'),
-      // Projects + UNBILLED delivery count (retainer owed should ignore already-billed deliveries)
+      // Projects + UNBILLED delivery count (retainer owed ignores billed) +
+      // paid revenue rows (needed to derive unpaid gig totals)
       supabase.from('projects')
-        .select('id, name, project_type, status, unit_price, created_at, clients(client_name), unbilled:deliveries(count)')
+        .select('id, name, project_type, status, price, unit_price, created_at, clients(client_name), unbilled:deliveries(count), paid_revenue:revenue(amount, status)')
         .eq('unbilled.billed', false)
+        .eq('paid_revenue.status', 'paid')
         .order('created_at', { ascending: false }),
       supabase.from('clients').select('*', { count: 'exact', head: true }),
       supabase.from('revenue').select('amount').eq('status', 'paid').gte('payment_date', firstOfMonth),
@@ -61,6 +63,25 @@ export function useDashboard() {
         return sum + unbilled * Number(p.unit_price ?? 0)
       }, 0)
 
+    // Gigs owed: for every done gig, (price - sum of paid revenue), floored at 0
+    const unpaidGigs = projects.filter(p => {
+      if (p.project_type !== 'gig') return false
+      if (p.status !== 'done') return false
+      const price = Number(p.price ?? 0)
+      if (price <= 0) return false
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const paid = (((p as any).paid_revenue as { amount: number }[] | null) ?? [])
+        .reduce((s, r) => s + Number(r.amount ?? 0), 0)
+      return paid < price
+    })
+    const gigsOwed = unpaidGigs.reduce((sum, p) => {
+      const price = Number(p.price ?? 0)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const paid = (((p as any).paid_revenue as { amount: number }[] | null) ?? [])
+        .reduce((s, r) => s + Number(r.amount ?? 0), 0)
+      return sum + Math.max(0, price - paid)
+    }, 0)
+
     const openProjects = projects.filter(p => {
       if (p.project_type === 'gig') return p.status !== 'done'
       return true // packages + retainers always count as open
@@ -75,6 +96,8 @@ export function useDashboard() {
         activeClients: clientsRes.count ?? 0,
         monthlyRevenue,
         retainerOwed,
+        unpaidGigs: unpaidGigs.length,
+        gigsOwed,
         openProjects,
       },
       pipeline,

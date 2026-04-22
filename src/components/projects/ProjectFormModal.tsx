@@ -125,7 +125,7 @@ export default function ProjectFormModal({ open, onClose, onSave, project }: Pro
     if (payload.project_type !== 'gig') delete payload.status
 
     const payment: PaymentEntry | undefined =
-      !project && logPayment && paymentAmount
+      logPayment && paymentAmount
         ? { amount: paymentAmount, status: paymentStatus, payment_date: paymentDate }
         : undefined
 
@@ -138,6 +138,20 @@ export default function ProjectFormModal({ open, onClose, onSave, project }: Pro
   const isPackage = form.project_type === 'package'
   const isGig = form.project_type === 'gig'
   const isNew = !project
+
+  // Show the "Log payment" toggle when:
+  //   1. creating any new project, OR
+  //   2. editing a gig AND its status is being set to 'done' AND it isn't
+  //      already fully paid (so we nudge users to capture the payment).
+  const paidSoFar = Number(project?.paid_amount ?? 0)
+  const gigPrice  = Number(form.price ?? 0)
+  const gigUnpaid = paidSoFar < gigPrice
+  const offerPayment = isNew || (isGig && form.status === 'done' && gigUnpaid)
+  const paymentLabel = isNew
+    ? 'Log a payment for this project'
+    : paidSoFar > 0
+      ? `Log another payment (${paidSoFar} of ${gigPrice} received)`
+      : 'Log the payment for this gig'
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -256,8 +270,9 @@ export default function ProjectFormModal({ open, onClose, onSave, project }: Pro
             <Input value={form.notes ?? ''} onChange={e => set('notes', e.target.value)} placeholder="Any notes..." />
           </div>
 
-          {/* Log Payment toggle — new projects only */}
-          {isNew && (
+          {/* Log Payment toggle — shown for new projects, or when editing a
+              gig into 'done' state that isn't fully paid yet. */}
+          {offerPayment && (
             <div className="border-t border-zinc-100 pt-3 space-y-3">
               <button
                 type="button"
@@ -267,7 +282,7 @@ export default function ProjectFormModal({ open, onClose, onSave, project }: Pro
                 <div className={`w-8 h-4 rounded-full transition-colors shrink-0 ${logPayment ? 'bg-zinc-900' : 'bg-zinc-200'}`}>
                   <div className={`w-3 h-3 rounded-full bg-white m-0.5 transition-transform ${logPayment ? 'translate-x-4' : 'translate-x-0'}`} />
                 </div>
-                <span className="text-sm text-zinc-600">Log a payment for this project</span>
+                <span className="text-sm text-zinc-600">{paymentLabel}</span>
               </button>
 
               {logPayment && (

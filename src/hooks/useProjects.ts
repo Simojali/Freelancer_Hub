@@ -8,10 +8,13 @@ export function useProjects() {
     // For packages we want total delivery count (capacity tracker).
     // For retainers we only want UNBILLED deliveries so the "owed" amount
     // doesn't include deliveries that have already been billed.
+    // We also embed the paid revenue rows so gig "unpaid" state can be
+    // derived: a done gig is unpaid while sum(paid revenue) < price.
     const result = await supabase
       .from('projects')
-      .select('*, clients(client_name), all_deliveries:deliveries(count), unbilled_deliveries:deliveries(count)')
+      .select('*, clients(client_name), all_deliveries:deliveries(count), unbilled_deliveries:deliveries(count), paid_revenue:revenue(amount, status)')
       .eq('unbilled_deliveries.billed', false)
+      .eq('paid_revenue.status', 'paid')
       .order('created_at', { ascending: false })
     if (result.error) throw result.error
     return (result.data ?? []).map(row => {
@@ -19,10 +22,13 @@ export function useProjects() {
       const r = row as any
       const allCount = (r.all_deliveries as { count: number }[] | null)?.[0]?.count ?? 0
       const unbilledCount = (r.unbilled_deliveries as { count: number }[] | null)?.[0]?.count ?? 0
+      const paidAmount = ((r.paid_revenue as { amount: number }[] | null) ?? [])
+        .reduce((sum, r) => sum + Number(r.amount ?? 0), 0)
       return {
         ...row,
         // Packages use the total (lifetime capacity). Retainers use unbilled.
         delivery_count: r.project_type === 'package' ? allCount : unbilledCount,
+        paid_amount: paidAmount,
       }
     }) as Project[]
   })

@@ -66,6 +66,17 @@ export interface Project {
   updated_at: string
   clients?: { client_name: string } | null
   delivery_count?: number
+  /** Sum of paid revenue rows linked to this project (derived client-side) */
+  paid_amount?: number
+}
+
+/** True when a gig is finished but not fully paid (partial payments still count as unpaid) */
+export function isGigUnpaid(p: Project): boolean {
+  if (p.project_type !== 'gig') return false
+  if (p.status !== 'done') return false
+  const price = Number(p.price ?? 0)
+  if (price <= 0) return false // nothing to bill against
+  return (p.paid_amount ?? 0) < price
 }
 
 export interface Delivery {
@@ -107,6 +118,8 @@ export interface DashboardData {
     activeClients: number
     monthlyRevenue: number
     retainerOwed: number
+    unpaidGigs: number
+    gigsOwed: number
     openProjects: number
   }
   pipeline: {

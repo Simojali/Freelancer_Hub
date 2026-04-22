@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import type { Project, Revenue } from '@/lib/types'
+import { isGigUnpaid } from '@/lib/types'
 import { useProjects } from '@/hooks/useProjects'
 import { useRevenue } from '@/hooks/useRevenue'
 import { useSettings } from '@/hooks/useSettings'
@@ -35,6 +36,8 @@ interface Props {
   dateTo?: string
   /** If true, only gigs that are past their due date and not done */
   overdueOnly?: boolean
+  /** If true, only gigs that are done but not fully paid */
+  unpaidOnly?: boolean
   formOpen: boolean
   setFormOpen: (v: boolean) => void
   editProject: Project | null
@@ -72,6 +75,7 @@ export default function ProjectsList({
   dateFrom,
   dateTo,
   overdueOnly = false,
+  unpaidOnly = false,
   formOpen, setFormOpen,
   editProject, setEditProject,
 }: Props) {
@@ -120,7 +124,14 @@ export default function ProjectsList({
         if (p.project_type !== 'gig') continue
         if (!p.due_date || p.due_date >= today || p.status === 'done') continue
       }
-      if (!showCompleted && p.project_type === 'gig' && p.status === 'done') continue
+      // Unpaid: only gigs marked done but not fully paid.
+      // When the user is actively looking for unpaid work we always show
+      // those gigs, even if "Show completed" is off.
+      if (unpaidOnly) {
+        if (!isGigUnpaid(p)) continue
+      } else if (!showCompleted && p.project_type === 'gig' && p.status === 'done') {
+        continue
+      }
       if (activeTab !== 'all' && p.project_type !== activeTab) continue
       filtered.push(p)
     }
@@ -152,7 +163,7 @@ export default function ProjectsList({
     }
 
     return { filtered: sorted, retainers, packages, gigs, clientGroups }
-  }, [projects, serviceFilter, search, showCompleted, activeTab, sortKey, groupBy, dateFrom, dateTo, overdueOnly])
+  }, [projects, serviceFilter, search, showCompleted, activeTab, sortKey, groupBy, dateFrom, dateTo, overdueOnly, unpaidOnly])
 
   // Prune stale keys from the collapsed set whenever groups change.
   // Keeps the set from growing unbounded as clients come and go.
@@ -178,7 +189,20 @@ export default function ProjectsList({
 
   async function handleSave(data: Partial<Project>, payment?: PaymentEntry): Promise<boolean> {
     if (editProject) {
-      return updateProject(editProject.id, data)
+      const ok = await updateProject(editProject.id, data)
+      if (ok && payment) {
+        // Nudge flow: user flipped a gig to done and opted to log the
+        // payment in the same dialog. Link it to the existing project.
+        await createRevenue({
+          amount: payment.amount,
+          status: payment.status,
+          payment_date: payment.payment_date,
+          client_id: data.client_id ?? editProject.client_id ?? undefined,
+          project_id: editProject.id,
+          service_type: data.service_type ?? editProject.service_type,
+        })
+      }
+      return ok
     }
     const newId = await createProject(data)
     if (!newId) return false
@@ -231,20 +255,24 @@ export default function ProjectsList({
         <EmptyState
           icon={FolderKanban}
           title={
-            overdueOnly
-              ? 'Nothing overdue'
-              : (dateFrom || dateTo)
-                ? 'No projects in this range'
-                : activeTab === 'all' ? 'No projects yet' : `No ${activeTab}s in this view`
+            unpaidOnly
+              ? 'Nothing unpaid'
+              : overdueOnly
+                ? 'Nothing overdue'
+                : (dateFrom || dateTo)
+                  ? 'No projects in this range'
+                  : activeTab === 'all' ? 'No projects yet' : `No ${activeTab}s in this view`
           }
           description={
-            overdueOnly
-              ? 'No gigs are past their due date. Nice work keeping up.'
-              : (dateFrom || dateTo)
-                ? 'Try broadening the date range or clearing other filters.'
-                : activeTab === 'all'
-                  ? 'Projects you create will appear here. Start by adding a gig, package, or retainer.'
-                  : 'Try another tab, clear the service filter, or toggle Show Completed.'
+            unpaidOnly
+              ? 'Every finished gig has been paid for. Nicely done.'
+              : overdueOnly
+                ? 'No gigs are past their due date. Nice work keeping up.'
+                : (dateFrom || dateTo)
+                  ? 'Try broadening the date range or clearing other filters.'
+                  : activeTab === 'all'
+                    ? 'Projects you create will appear here. Start by adding a gig, package, or retainer.'
+                    : 'Try another tab, clear the service filter, or toggle Show Completed.'
           }
           size="lg"
         />

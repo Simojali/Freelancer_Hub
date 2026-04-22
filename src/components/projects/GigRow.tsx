@@ -1,4 +1,5 @@
 import type { Project, GigStatus } from '@/lib/types'
+import { isGigUnpaid } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Pencil, Trash2 } from 'lucide-react'
 import { cn, formatCurrency, formatDate } from '@/lib/utils'
@@ -18,6 +19,7 @@ export default function GigRow({ project, onEdit, onDelete }: Props) {
     project.due_date != null &&
     project.status !== 'done' &&
     new Date(project.due_date) < new Date()
+  const unpaid = isGigUnpaid(project)
 
   return (
     <div className={cn(
@@ -46,12 +48,22 @@ export default function GigRow({ project, onEdit, onDelete }: Props) {
         <span className="text-sm text-zinc-600 shrink-0">{formatCurrency(project.price, currency)}</span>
       )}
 
-      {/* Status + Overdue */}
+      {/* Status + Overdue + Unpaid */}
       <div className="shrink-0 flex items-center gap-1.5">
         {project.status && <GigStatusBadge status={project.status as GigStatus} />}
         {isOverdue && (
           <span className="text-xs px-2 py-0.5 rounded-full border font-medium bg-red-50 text-red-600 border-red-200">
             Overdue
+          </span>
+        )}
+        {unpaid && (
+          <span
+            className="text-xs px-2 py-0.5 rounded-full border font-medium bg-amber-50 text-amber-700 border-amber-200"
+            title={(project.paid_amount ?? 0) > 0
+              ? `${formatCurrency(project.paid_amount ?? 0, currency)} of ${formatCurrency(project.price ?? 0, currency)} paid`
+              : 'No payment logged for this gig'}
+          >
+            Unpaid
           </span>
         )}
       </div>

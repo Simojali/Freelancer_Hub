@@ -2,7 +2,7 @@ import { useDashboard } from '@/hooks/useDashboard'
 import KpiCard from './KpiCard'
 import PipelineFunnel from './PipelineFunnel'
 import RecentActivity from './RecentActivity'
-import { Users, UserCheck, DollarSign, FolderKanban, TrendingUp, Clock } from 'lucide-react'
+import { Users, UserCheck, DollarSign, FolderKanban, TrendingUp, Wallet } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
 import { useSettings } from '@/hooks/useSettings'
 
@@ -45,10 +45,10 @@ export default function DashboardView() {
         <KpiCard label="Active Clients" value={kpis.activeClients} icon={UserCheck} iconColor="text-blue-500" />
         <KpiCard label="This Month" value={formatCurrency(kpis.monthlyRevenue, currency)} icon={DollarSign} iconColor="text-emerald-500" />
         <KpiCard
-          label="Retainers Owed"
-          value={formatCurrency(kpis.retainerOwed, currency)}
-          sub="unbilled deliveries"
-          icon={Clock}
+          label="Owed to you"
+          value={formatCurrency(kpis.retainerOwed + kpis.gigsOwed, currency)}
+          sub={`${formatCurrency(kpis.retainerOwed, currency)} retainers · ${formatCurrency(kpis.gigsOwed, currency)} gigs`}
+          icon={Wallet}
           iconColor="text-amber-500"
         />
         <KpiCard label="Open Projects" value={kpis.openProjects} icon={FolderKanban} iconColor="text-amber-500" />

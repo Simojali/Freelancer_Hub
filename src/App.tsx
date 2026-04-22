@@ -14,8 +14,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
-import { Plus, Layers, Users, CheckCheck, Search, ArrowUpDown, Calendar, AlertTriangle } from 'lucide-react'
+import { Plus, Layers, Users, CheckCheck, Search, ArrowUpDown, AlertTriangle, Wallet } from 'lucide-react'
+import DateRangePicker from '@/components/shared/DateRangePicker'
 import type { Project } from '@/lib/types'
+import { isGigUnpaid } from '@/lib/types'
 
 export type SortKey = 'newest' | 'oldest' | 'price_desc' | 'price_asc' | 'due_date' | 'name'
 export type DateRange = 'all' | 'today' | 'week' | 'month' | 'last_month' | 'last_3_months' | 'year' | 'custom'
@@ -90,16 +92,6 @@ const SORT_OPTIONS: { value: SortKey; label: string }[] = [
   { value: 'due_date',   label: 'Due date' },
 ]
 
-const DATE_RANGE_OPTIONS: { value: DateRange; label: string }[] = [
-  { value: 'all',           label: 'All time' },
-  { value: 'today',         label: 'Today' },
-  { value: 'week',          label: 'This week' },
-  { value: 'month',         label: 'This month' },
-  { value: 'last_month',    label: 'Last month' },
-  { value: 'last_3_months', label: 'Last 3 months' },
-  { value: 'year',          label: 'This year' },
-  { value: 'custom',        label: 'Custom range…' },
-]
 
 function ProjectsPage() {
   const { services } = useServices()
@@ -117,6 +109,7 @@ function ProjectsPage() {
   const customFrom    = searchParams.get('from') ?? ''
   const customTo      = searchParams.get('to') ?? ''
   const overdueOnly   = searchParams.get('overdue') === '1'
+  const unpaidOnly    = searchParams.get('unpaid') === '1'
 
   function updateParam(key: string, value: string, defaultValue: string) {
     const next = new URLSearchParams(searchParams)
@@ -129,23 +122,42 @@ function ProjectsPage() {
   const setGroupBy       = (g: GroupBy)  => updateParam('group', g, 'type')
   const setSearch        = (q: string)   => updateParam('q', q, '')
   const setSort          = (s: SortKey)  => updateParam('sort', s, 'newest')
-  const setDateRange     = (r: DateRange) => {
-    updateParam('dateRange', r, 'all')
-    // When leaving custom, clear any lingering from/to
-    if (r !== 'custom') {
-      const next = new URLSearchParams(searchParams)
-      if (r === 'all') next.delete('dateRange'); else next.set('dateRange', r)
-      next.delete('from'); next.delete('to')
-      setSearchParams(next, { replace: true })
+  // When a preset is picked, write both the range marker AND the computed
+  // from/to bounds so the inputs stay in sync.
+  const setDateRange = (r: DateRange) => {
+    const next = new URLSearchParams(searchParams)
+    if (r === 'all') {
+      next.delete('dateRange'); next.delete('from'); next.delete('to')
+    } else if (r === 'custom') {
+      next.set('dateRange', 'custom')
+      // leave from/to as-is
+    } else {
+      const { from, to } = rangeBounds(r)
+      next.set('dateRange', r)
+      if (from) next.set('from', from); else next.delete('from')
+      if (to)   next.set('to', to);     else next.delete('to')
     }
+    setSearchParams(next, { replace: true })
   }
-  const setCustomFrom    = (d: string)   => updateParam('from', d, '')
-  const setCustomTo      = (d: string)   => updateParam('to', d, '')
+  // Editing a date input directly flips the range to 'custom' and saves the value.
+  const setCustomFrom = (d: string) => {
+    const next = new URLSearchParams(searchParams)
+    next.set('dateRange', 'custom')
+    if (d) next.set('from', d); else next.delete('from')
+    setSearchParams(next, { replace: true })
+  }
+  const setCustomTo = (d: string) => {
+    const next = new URLSearchParams(searchParams)
+    next.set('dateRange', 'custom')
+    if (d) next.set('to', d); else next.delete('to')
+    setSearchParams(next, { replace: true })
+  }
   const setShowCompleted = (v: boolean | ((prev: boolean) => boolean)) => {
     const next = typeof v === 'function' ? v(showCompleted) : v
     updateParam('completed', next ? '1' : '0', '0')
   }
   const setOverdueOnly   = (v: boolean) => updateParam('overdue', v ? '1' : '0', '0')
+  const setUnpaidOnly    = (v: boolean) => updateParam('unpaid',  v ? '1' : '0', '0')
 
   // Resolved date bounds applied to the filter
   const { from: dateFrom, to: dateTo } = rangeBounds(dateRange, customFrom, customTo)
@@ -169,9 +181,13 @@ function ProjectsPage() {
       if (p.project_type !== 'gig') return false
       if (!p.due_date || p.due_date >= todayStr || p.status === 'done') return false
     }
+    if (unpaidOnly && !isGigUnpaid(p)) return false
     return true
   })
   const completedCount = visibleForCounts.filter(p => p.project_type === 'gig' && p.status === 'done').length
+  // Count unpaid gigs across the *unfiltered-by-unpaid* pool so the badge
+  // still reflects real totals even while the user is toggling it on/off.
+  const unpaidCount = projects.filter(isGigUnpaid).length
   const countablePool = showCompleted
     ? visibleForCounts
     : visibleForCounts.filter(p => !(p.project_type === 'gig' && p.status === 'done'))
@@ -213,18 +229,15 @@ function ProjectsPage() {
             </SelectContent>
           </Select>
 
-          {/* Date range */}
-          <Select value={dateRange} onValueChange={v => v && setDateRange(v as DateRange)}>
-            <SelectTrigger className="w-36 text-xs">
-              <Calendar className="w-3 h-3 mr-1" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {DATE_RANGE_OPTIONS.map(o => (
-                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {/* Date range — opens a popover with presets + custom range */}
+          <DateRangePicker
+            dateRange={dateRange}
+            from={dateFrom}
+            to={dateTo}
+            onPreset={setDateRange}
+            onFromChange={setCustomFrom}
+            onToChange={setCustomTo}
+          />
 
           {/* Overdue pill — only meaningful when gigs are in view */}
           {(activeTab === 'all' || activeTab === 'gig') && (
@@ -237,6 +250,23 @@ function ProjectsPage() {
             >
               <AlertTriangle className="w-3 h-3" />
               Overdue
+            </button>
+          )}
+
+          {/* Unpaid pill — only meaningful when gigs are in view; auto-hides when nothing unpaid */}
+          {(activeTab === 'all' || activeTab === 'gig') && unpaidCount > 0 && (
+            <button
+              onClick={() => setUnpaidOnly(!unpaidOnly)}
+              className={cn('flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border text-xs transition-colors',
+                unpaidOnly
+                  ? 'bg-amber-500 text-white border-amber-500'
+                  : 'border-zinc-200 text-zinc-500 hover:bg-zinc-50')}
+            >
+              <Wallet className="w-3 h-3" />
+              Unpaid
+              <span className={cn('px-1 rounded-full text-[10px]', unpaidOnly ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-700')}>
+                {unpaidCount}
+              </span>
             </button>
           )}
 
@@ -282,33 +312,6 @@ function ProjectsPage() {
         </div>
       </div>
 
-      {/* Custom date range row — only visible when dateRange === 'custom' */}
-      {dateRange === 'custom' && (
-        <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-500 bg-zinc-50 border border-zinc-200 rounded-md px-3 py-2">
-          <Calendar className="w-3.5 h-3.5 text-zinc-400" />
-          <span>From</span>
-          <Input
-            type="date"
-            value={customFrom}
-            onChange={e => setCustomFrom(e.target.value)}
-            className="h-7 w-36 text-xs"
-          />
-          <span>to</span>
-          <Input
-            type="date"
-            value={customTo}
-            onChange={e => setCustomTo(e.target.value)}
-            className="h-7 w-36 text-xs"
-          />
-          <button
-            onClick={() => setDateRange('all')}
-            className="ml-auto text-zinc-400 hover:text-zinc-700 underline-offset-2 hover:underline"
-          >
-            Clear
-          </button>
-        </div>
-      )}
-
       {/* Tabs */}
       <div className="flex items-center border-b border-zinc-200 overflow-x-auto">
         {TABS.map(tab => (
@@ -335,6 +338,7 @@ function ProjectsPage() {
         dateFrom={dateFrom}
         dateTo={dateTo}
         overdueOnly={overdueOnly}
+        unpaidOnly={unpaidOnly}
         formOpen={formOpen}           setFormOpen={setFormOpen}
         editProject={editProject}     setEditProject={setEditProject}
       />
