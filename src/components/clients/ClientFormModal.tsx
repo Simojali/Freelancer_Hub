@@ -7,7 +7,7 @@ import type { Client } from '@/lib/types'
 interface Props {
   open: boolean
   onClose: () => void
-  onSave: (data: Partial<Client>) => void
+  onSave: (data: Partial<Client>) => Promise<boolean | void>
   client?: Client | null
 }
 
@@ -21,18 +21,24 @@ const empty: Partial<Client> = {
 
 export default function ClientFormModal({ open, onClose, onSave, client }: Props) {
   const [form, setForm] = useState<Partial<Client>>(empty)
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     setForm(client ?? empty)
+    setSaving(false)
   }, [client, open])
 
   function set(field: string, value: string) {
     setForm(f => ({ ...f, [field]: value }))
   }
 
-  function handleSave() {
-    onSave(form)
-    onClose()
+  async function handleSave() {
+    if (saving) return
+    if (!form.client_name?.trim()) return
+    setSaving(true)
+    const ok = await onSave(form)
+    setSaving(false)
+    if (ok !== false) onClose()
   }
 
   return (
@@ -64,8 +70,10 @@ export default function ClientFormModal({ open, onClose, onSave, client }: Props
           </div>
         </div>
         <div className="flex justify-end gap-2 mt-4">
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={handleSave} disabled={!form.client_name?.trim()}>Save</Button>
+          <Button variant="outline" onClick={onClose} disabled={saving}>Cancel</Button>
+          <Button onClick={handleSave} disabled={saving || !form.client_name?.trim()}>
+            {saving ? 'Saving…' : 'Save'}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

@@ -11,7 +11,7 @@ import { useServices } from '@/hooks/useServices'
 interface Props {
   open: boolean
   onClose: () => void
-  onSave: (data: Partial<Revenue>) => void
+  onSave: (data: Partial<Revenue>) => Promise<boolean | void>
   revenue?: Revenue | null
   prefill?: Partial<Revenue>
 }
@@ -30,6 +30,7 @@ const empty: Partial<Revenue> = {
 
 export default function RevenueFormModal({ open, onClose, onSave, revenue, prefill }: Props) {
   const [form, setForm] = useState<Partial<Revenue>>(empty)
+  const [saving, setSaving] = useState(false)
   const { clients } = useClients()
   const { projects } = useProjects()
   const { services } = useServices()
@@ -43,6 +44,7 @@ export default function RevenueFormModal({ open, onClose, onSave, revenue, prefi
 
   useEffect(() => {
     setForm(revenue ?? (prefill ? { ...empty, ...prefill } : empty))
+    setSaving(false)
   }, [revenue, prefill, open])
 
   function set(field: string, value: string | number | null | undefined) {
@@ -53,12 +55,16 @@ export default function RevenueFormModal({ open, onClose, onSave, revenue, prefi
     ? projects.filter((p: Project) => p.client_id === form.client_id)
     : []
 
-  function handleSave() {
+  async function handleSave() {
+    if (saving) return
+    if (!form.amount) return
     const payload = { ...form }
     if (!payload.client_id) delete payload.client_id
     if (!payload.project_id) delete payload.project_id
-    onSave(payload)
-    onClose()
+    setSaving(true)
+    const ok = await onSave(payload)
+    setSaving(false)
+    if (ok !== false) onClose()
   }
 
   return (
@@ -148,8 +154,10 @@ export default function RevenueFormModal({ open, onClose, onSave, revenue, prefi
           </div>
         </div>
         <div className="flex justify-end gap-2 mt-4">
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={handleSave} disabled={!form.amount}>Save</Button>
+          <Button variant="outline" onClick={onClose} disabled={saving}>Cancel</Button>
+          <Button onClick={handleSave} disabled={saving || !form.amount}>
+            {saving ? 'Saving…' : 'Save'}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

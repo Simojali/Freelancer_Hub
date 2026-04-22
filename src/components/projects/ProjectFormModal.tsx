@@ -16,7 +16,7 @@ export interface PaymentEntry {
 interface Props {
   open: boolean
   onClose: () => void
-  onSave: (data: Partial<Project>, payment?: PaymentEntry) => void
+  onSave: (data: Partial<Project>, payment?: PaymentEntry) => Promise<boolean | void>
   project?: Project | null
 }
 
@@ -61,6 +61,7 @@ export default function ProjectFormModal({ open, onClose, onSave, project }: Pro
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>('pending')
   const [paymentDate, setPaymentDate] = useState(today)
   const [paymentAmount, setPaymentAmount] = useState<number | undefined>(undefined)
+  const [saving, setSaving] = useState(false)
   const { clients } = useClients()
   const { services } = useServices()
 
@@ -81,6 +82,7 @@ export default function ProjectFormModal({ open, onClose, onSave, project }: Pro
     setPaymentStatus('pending')
     setPaymentDate(today)
     setPaymentAmount(undefined)
+    setSaving(false)
   }, [project, open])
 
   // Keep payment amount in sync with price when user hasn't touched it yet
@@ -115,7 +117,9 @@ export default function ProjectFormModal({ open, onClose, onSave, project }: Pro
     }
   }
 
-  function handleSave() {
+  async function handleSave() {
+    if (saving) return
+    if (!form.name?.trim()) return
     const payload = { ...form }
     if (!payload.client_id) delete payload.client_id
     if (payload.project_type !== 'gig') delete payload.status
@@ -125,8 +129,10 @@ export default function ProjectFormModal({ open, onClose, onSave, project }: Pro
         ? { amount: paymentAmount, status: paymentStatus, payment_date: paymentDate }
         : undefined
 
-    onSave(payload, payment)
-    onClose()
+    setSaving(true)
+    const ok = await onSave(payload, payment)
+    setSaving(false)
+    if (ok !== false) onClose()
   }
 
   const isPackage = form.project_type === 'package'
@@ -298,12 +304,12 @@ export default function ProjectFormModal({ open, onClose, onSave, project }: Pro
         </div>
 
         <div className="flex justify-end gap-2 mt-4">
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button variant="outline" onClick={onClose} disabled={saving}>Cancel</Button>
           <Button
             onClick={handleSave}
-            disabled={!form.name?.trim() || (isPackage && !form.total_units) || (form.project_type === 'retainer' && !form.unit_price) || (logPayment && !paymentAmount)}
+            disabled={saving || !form.name?.trim() || (isPackage && !form.total_units) || (form.project_type === 'retainer' && !form.unit_price) || (logPayment && !paymentAmount)}
           >
-            Save{logPayment ? ' & Log Payment' : ''}
+            {saving ? 'Saving…' : `Save${logPayment ? ' & Log Payment' : ''}`}
           </Button>
         </div>
       </DialogContent>

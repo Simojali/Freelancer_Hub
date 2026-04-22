@@ -2,80 +2,79 @@ import useSWR from 'swr'
 import type { DashboardData } from '@/lib/types'
 import { supabase } from '@/lib/supabase'
 
+/**
+ * Consolidated dashboard fetch.
+ *
+ * Previously fired 18 separate Supabase requests. Now fires 5 parallel
+ * queries and computes all aggregate counts client-side. For the expected
+ * data volume (hundreds of rows), this is massively faster than paying
+ * round-trip cost per stat.
+ */
 export function useDashboard() {
   const { data, error, isLoading } = useSWR<DashboardData>('dashboard', async () => {
     const now = new Date()
     const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]
 
-    const [
-      totalLeadsRes,
-      closedLeadsRes,
-      activeClientsRes,
-      monthlyRevenueRes,
-      retainerProjectsRes,
-      openGigsRes,
-      openPackagesRes,
-      openRetainersRes,
-      sampleRes,
-      beforeAfterRes,
-      followedRes,
-      contactedIgRes,
-      contactedEmailRes,
-      seenRes,
-      respondedRes,
-      closedPipelineRes,
-      recentProjectsRes,
-      recentPaymentsRes,
-    ] = await Promise.all([
-      supabase.from('leads').select('*', { count: 'exact', head: true }),
-      supabase.from('leads').select('*', { count: 'exact', head: true }).eq('closed', true),
+    const [leadsRes, projectsRes, clientsRes, monthlyRevenueRes, recentPaymentsRes] = await Promise.all([
+      // All pipeline booleans in a single payload
+      supabase.from('leads').select('thumbnail_sample, before_after_made, followed_engaged, contacted_ig, contacted_email, seen, responded, closed'),
+      // All projects with the fields we care about (status, type, unit_price, delivery count)
+      supabase.from('projects').select('id, name, project_type, status, unit_price, created_at, clients(client_name), deliveries(count)').order('created_at', { ascending: false }),
       supabase.from('clients').select('*', { count: 'exact', head: true }),
       supabase.from('revenue').select('amount').eq('status', 'paid').gte('payment_date', firstOfMonth),
-      supabase.from('projects').select('unit_price, deliveries(count)').eq('project_type', 'retainer'),
-      supabase.from('projects').select('*', { count: 'exact', head: true }).eq('project_type', 'gig').neq('status', 'done'),
-      supabase.from('projects').select('*', { count: 'exact', head: true }).eq('project_type', 'package'),
-      supabase.from('projects').select('*', { count: 'exact', head: true }).eq('project_type', 'retainer'),
-      supabase.from('leads').select('*', { count: 'exact', head: true }).eq('thumbnail_sample', true),
-      supabase.from('leads').select('*', { count: 'exact', head: true }).eq('before_after_made', true),
-      supabase.from('leads').select('*', { count: 'exact', head: true }).eq('followed_engaged', true),
-      supabase.from('leads').select('*', { count: 'exact', head: true }).eq('contacted_ig', true),
-      supabase.from('leads').select('*', { count: 'exact', head: true }).eq('contacted_email', true),
-      supabase.from('leads').select('*', { count: 'exact', head: true }).eq('seen', true),
-      supabase.from('leads').select('*', { count: 'exact', head: true }).eq('responded', true),
-      supabase.from('leads').select('*', { count: 'exact', head: true }).eq('closed', true),
-      supabase.from('projects').select('id, name, project_type, status, clients(client_name)').order('created_at', { ascending: false }).limit(5),
       supabase.from('revenue').select('id, amount, status, payment_date, clients(client_name)').order('payment_date', { ascending: false }).limit(5),
     ])
 
-    const totalLeads = totalLeadsRes.count ?? 0
-    const closedLeads = closedLeadsRes.count ?? 0
+    if (leadsRes.error) throw leadsRes.error
+    if (projectsRes.error) throw projectsRes.error
+
+    const leads = leadsRes.data ?? []
+    const projects = projectsRes.data ?? []
+
+    // Pipeline counts derived from the leads payload (no round-trips)
+    const pipeline = {
+      sample:         leads.filter(l => l.thumbnail_sample).length,
+      beforeAfter:    leads.filter(l => l.before_after_made).length,
+      followed:       leads.filter(l => l.followed_engaged).length,
+      contactedIg:    leads.filter(l => l.contacted_ig).length,
+      contactedEmail: leads.filter(l => l.contacted_email).length,
+      seen:           leads.filter(l => l.seen).length,
+      responded:      leads.filter(l => l.responded).length,
+      closed:         leads.filter(l => l.closed).length,
+    }
+
+    const totalLeads = leads.length
+    const closedLeads = pipeline.closed
     const conversionRate = totalLeads > 0 ? ((closedLeads / totalLeads) * 100).toFixed(1) : '0.0'
+
     const monthlyRevenue = (monthlyRevenueRes.data ?? []).reduce((sum, r) => sum + Number(r.amount), 0)
-    const retainerOwed = (retainerProjectsRes.data ?? []).reduce((sum, r) => {
-      const deliveryCount = (r.deliveries as { count: number }[] | null)?.[0]?.count ?? 0
-      return sum + deliveryCount * Number(r.unit_price ?? 0)
-    }, 0)
+
+    // Retainer owed + open projects, derived from the single projects payload
+    const retainerOwed = projects
+      .filter(p => p.project_type === 'retainer')
+      .reduce((sum, p) => {
+        const deliveryCount = (p.deliveries as { count: number }[] | null)?.[0]?.count ?? 0
+        return sum + deliveryCount * Number(p.unit_price ?? 0)
+      }, 0)
+
+    const openProjects = projects.filter(p => {
+      if (p.project_type === 'gig') return p.status !== 'done'
+      return true // packages + retainers always count as open
+    }).length
+
+    const recentProjects = projects.slice(0, 5)
 
     return {
       kpis: {
         totalLeads,
         conversionRate: `${conversionRate}%`,
-        activeClients: activeClientsRes.count ?? 0,
+        activeClients: clientsRes.count ?? 0,
         monthlyRevenue,
         retainerOwed,
-        openProjects: (openGigsRes.count ?? 0) + (openPackagesRes.count ?? 0) + (openRetainersRes.count ?? 0),
+        openProjects,
       },
-      pipeline: {
-        sample: sampleRes.count ?? 0,
-        beforeAfter: beforeAfterRes.count ?? 0,
-        followed: followedRes.count ?? 0,
-        contactedIg: contactedIgRes.count ?? 0,
-        contactedEmail: contactedEmailRes.count ?? 0,
-        seen: seenRes.count ?? 0,
-        responded: respondedRes.count ?? 0,
-        closed: closedPipelineRes.count ?? 0,
-      },
-      recentProjects: (recentProjectsRes.data ?? []) as unknown as DashboardData['recentProjects'],
+      pipeline,
+      recentProjects: recentProjects as unknown as DashboardData['recentProjects'],
       recentPayments: (recentPaymentsRes.data ?? []) as unknown as DashboardData['recentPayments'],
     }
   }, { refreshInterval: 60000 })

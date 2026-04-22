@@ -5,11 +5,12 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Pencil, Trash2, Plus, ExternalLink } from 'lucide-react'
+import { Pencil, Trash2, Plus, ExternalLink, Users } from 'lucide-react'
 import LeadFormModal from './LeadFormModal'
 import LeadDeleteDialog from './LeadDeleteDialog'
 import ServiceBadge from '@/components/shared/ServiceBadge'
 import { useServices } from '@/hooks/useServices'
+import EmptyState from '@/components/shared/EmptyState'
 
 // Pipeline steps shown in the Outreach section (sample already done)
 const OUTREACH_COLS: { field: keyof Lead; label: string }[] = [
@@ -58,9 +59,8 @@ export default function LeadsTable() {
   const prospects = leads.filter(l => !l.thumbnail_sample)
   const outreach = leads.filter(l => l.thumbnail_sample)
 
-  function handleSave(data: Partial<Lead>) {
-    if (editLead) updateLead(editLead.id, data)
-    else createLead(data)
+  async function handleSave(data: Partial<Lead>): Promise<boolean> {
+    return editLead ? updateLead(editLead.id, data) : createLead(data)
   }
 
   function ActionButtons({ lead }: { lead: Lead }) {
@@ -104,8 +104,19 @@ export default function LeadsTable() {
 
       {isLoading && <div className="text-center py-8 text-zinc-400 text-sm">Loading...</div>}
 
+      {/* Full empty state — only when no leads at all and no filters active */}
+      {!isLoading && leads.length === 0 && service === 'all' && !search && (
+        <EmptyState
+          icon={Users}
+          title="No leads yet"
+          description="Add potential clients you want to reach out to. As you contact them, check off each pipeline step to track progress."
+          action={{ label: 'Add your first lead', onClick: () => { setEditLead(null); setFormOpen(true) }, icon: Plus }}
+          size="lg"
+        />
+      )}
+
       {/* ── Prospects ─────────────────────────────── */}
-      {!isLoading && (
+      {!isLoading && (leads.length > 0 || service !== 'all' || search) && (
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-zinc-300" />
@@ -140,8 +151,8 @@ export default function LeadsTable() {
                     <td className="px-2 py-2.5 text-center">
                       <div className="flex justify-center">
                         <Checkbox
-                          checked={false}
-                          onCheckedChange={() => toggleField(lead.id, 'thumbnail_sample', false)}
+                          checked={lead.thumbnail_sample ?? false}
+                          onCheckedChange={() => toggleField(lead.id, 'thumbnail_sample', lead.thumbnail_sample ?? false)}
                           className="data-[state=checked]:bg-zinc-800 data-[state=checked]:border-zinc-800"
                         />
                       </div>
@@ -156,7 +167,7 @@ export default function LeadsTable() {
       )}
 
       {/* ── Outreach Pipeline ─────────────────────── */}
-      {!isLoading && (
+      {!isLoading && (leads.length > 0 || service !== 'all' || search) && (
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-blue-400" />

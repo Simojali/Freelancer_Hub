@@ -1,6 +1,7 @@
 import useSWR from 'swr'
 import type { Project } from '@/lib/types'
 import { supabase } from '@/lib/supabase'
+import { runMutation } from '@/lib/db'
 
 export function useProjects() {
   const { data, error, mutate, isLoading } = useSWR<Project[]>('projects', async () => {
@@ -8,6 +9,7 @@ export function useProjects() {
       .from('projects')
       .select('*, clients(client_name), deliveries(count)')
       .order('created_at', { ascending: false })
+    if (result.error) throw result.error
     return (result.data ?? []).map(row => ({
       ...row,
       delivery_count: (row.deliveries as { count: number }[] | null)?.[0]?.count ?? 0,
@@ -16,25 +18,33 @@ export function useProjects() {
 
   async function createProject(body: Partial<Project>): Promise<string | null> {
     const { delivery_count: _dc, clients: _cl, ...insertBody } = body as Project & { delivery_count?: number }
-    const { data } = await supabase.from('projects').insert(insertBody).select('id').single()
+    const res = await runMutation('Create project', () =>
+      supabase.from('projects').insert(insertBody).select('id').single()
+    )
     mutate()
-    return data?.id ?? null
+    return res.ok ? (res.data as { id: string } | null)?.id ?? null : null
   }
 
-  async function updateProject(id: string, body: Partial<Project>) {
+  async function updateProject(id: string, body: Partial<Project>): Promise<boolean> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { delivery_count: _dc, clients: _cl, deliveries: _dv, id: _id, created_at: _ca, updated_at: _ua, ...updateBody } = body as any
-    mutate(
-      (projects) => projects?.map(p => p.id === id ? { ...p, ...body } : p),
-      false
-    )
-    await supabase.from('projects').update(updateBody).eq('id', id)
+    const prev = data
+    mutate(projects => projects?.map(p => p.id === id ? { ...p, ...body } : p), false)
+    const res = await runMutation('Update project', () =>
+      supabase.from('projects').update(updateBody).eq('id', id)
+    , { onError: () => mutate(prev, false) })
     mutate()
+    return res.ok
   }
 
-  async function deleteProject(id: string) {
-    await supabase.from('projects').delete().eq('id', id)
+  async function deleteProject(id: string): Promise<boolean> {
+    const prev = data
+    mutate(projects => projects?.filter(p => p.id !== id), false)
+    const res = await runMutation('Delete project', () =>
+      supabase.from('projects').delete().eq('id', id)
+    , { onError: () => mutate(prev, false) })
     mutate()
+    return res.ok
   }
 
   return { projects: data ?? [], isLoading, error, mutate, createProject, updateProject, deleteProject }

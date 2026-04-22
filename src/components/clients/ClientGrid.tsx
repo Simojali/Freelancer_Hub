@@ -5,8 +5,9 @@ import { useClients } from '@/hooks/useClients'
 import ClientCard from './ClientCard'
 import ClientFormModal from './ClientFormModal'
 import { Button } from '@/components/ui/button'
-import { Plus } from 'lucide-react'
+import { Plus, UserCheck } from 'lucide-react'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
+import EmptyState from '@/components/shared/EmptyState'
 
 export default function ClientGrid() {
   const navigate = useNavigate()
@@ -15,9 +16,8 @@ export default function ClientGrid() {
   const [editClient, setEditClient] = useState<Client | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Client | null>(null)
 
-  function handleSave(data: Partial<Client>) {
-    if (editClient) updateClient(editClient.id, data)
-    else createClient(data)
+  async function handleSave(data: Partial<Client>): Promise<boolean> {
+    return editClient ? updateClient(editClient.id, data) : createClient(data)
   }
 
   return (
@@ -30,7 +30,13 @@ export default function ClientGrid() {
 
       {isLoading && <div className="text-sm text-zinc-400 py-8 text-center">Loading...</div>}
       {!isLoading && clients.length === 0 && (
-        <div className="text-sm text-zinc-400 py-16 text-center">No clients yet. Add your first client.</div>
+        <EmptyState
+          icon={UserCheck}
+          title="No clients yet"
+          description="Add clients you're working with to track their projects and payments in one place."
+          action={{ label: 'Add your first client', onClick: () => { setEditClient(null); setFormOpen(true) }, icon: Plus }}
+          size="lg"
+        />
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

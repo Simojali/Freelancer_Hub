@@ -35,12 +35,11 @@ export default function ClientProfilePage() {
     })
   }
 
-  function handleClientSave(data: Partial<Client>) {
-    if (id) {
-      updateClient(id, data)
-      mutate()
-    }
-    setEditOpen(false)
+  async function handleClientSave(data: Partial<Client>): Promise<boolean> {
+    if (!id) return true
+    const ok = await updateClient(id, data)
+    mutate()
+    return ok
   }
 
   if (isLoading) {

@@ -9,7 +9,7 @@ import { useServices } from '@/hooks/useServices'
 interface Props {
   open: boolean
   onClose: () => void
-  onSave: (data: Partial<Lead>) => void
+  onSave: (data: Partial<Lead>) => Promise<boolean | void>
   lead?: Lead | null
 }
 
@@ -29,10 +29,12 @@ const empty: Partial<Lead> = {
 
 export default function LeadFormModal({ open, onClose, onSave, lead }: Props) {
   const [form, setForm] = useState<Partial<Lead>>(empty)
+  const [saving, setSaving] = useState(false)
   const { services } = useServices()
 
   useEffect(() => {
     setForm(lead ?? empty)
+    setSaving(false)
   }, [lead, open])
 
   // Default to first service when creating a new lead
@@ -46,9 +48,13 @@ export default function LeadFormModal({ open, onClose, onSave, lead }: Props) {
     setForm(f => ({ ...f, [field]: value }))
   }
 
-  function handleSave() {
-    onSave(form)
-    onClose()
+  async function handleSave() {
+    if (saving) return
+    if (!form.channel_name?.trim()) return
+    setSaving(true)
+    const ok = await onSave(form)
+    setSaving(false)
+    if (ok !== false) onClose()
   }
 
   return (
@@ -113,8 +119,10 @@ export default function LeadFormModal({ open, onClose, onSave, lead }: Props) {
           </div>
         </div>
         <div className="flex justify-end gap-2 mt-4">
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={handleSave} disabled={!form.channel_name?.trim()}>Save</Button>
+          <Button variant="outline" onClick={onClose} disabled={saving}>Cancel</Button>
+          <Button onClick={handleSave} disabled={saving || !form.channel_name?.trim()}>
+            {saving ? 'Saving…' : 'Save'}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

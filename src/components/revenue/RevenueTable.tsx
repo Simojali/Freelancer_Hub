@@ -3,7 +3,8 @@ import type { Revenue } from '@/lib/types'
 import { useRevenue } from '@/hooks/useRevenue'
 import { useSettings } from '@/hooks/useSettings'
 import { Button } from '@/components/ui/button'
-import { Plus, Pencil, Trash2 } from 'lucide-react'
+import { Plus, Pencil, Trash2, DollarSign } from 'lucide-react'
+import EmptyState from '@/components/shared/EmptyState'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import ServiceBadge from '@/components/shared/ServiceBadge'
 import PaymentStatusBadge from './PaymentStatusBadge'
@@ -21,9 +22,8 @@ export default function RevenueTable() {
   const totalPaid = revenue.filter(r => r.status === 'paid').reduce((s, r) => s + Number(r.amount), 0)
   const totalPending = revenue.filter(r => r.status === 'pending').reduce((s, r) => s + Number(r.amount), 0)
 
-  function handleSave(data: Partial<Revenue>) {
-    if (editItem) updateRevenue(editItem.id, data)
-    else createRevenue(data)
+  async function handleSave(data: Partial<Revenue>): Promise<boolean> {
+    return editItem ? updateRevenue(editItem.id, data) : createRevenue(data)
   }
 
   return (
@@ -60,7 +60,16 @@ export default function RevenueTable() {
               <tr><td colSpan={8} className="text-center py-8 text-zinc-400">Loading...</td></tr>
             )}
             {!isLoading && revenue.length === 0 && (
-              <tr><td colSpan={8} className="text-center py-8 text-zinc-400">No payments logged yet</td></tr>
+              <tr>
+                <td colSpan={8}>
+                  <EmptyState
+                    icon={DollarSign}
+                    title="No payments logged yet"
+                    description="Log a payment whenever a client pays you to keep your revenue history up to date."
+                    action={{ label: 'Log your first payment', onClick: () => { setEditItem(null); setFormOpen(true) }, icon: Plus }}
+                  />
+                </td>
+              </tr>
             )}
             {revenue.map(item => (
               <tr key={item.id} className="border-b border-zinc-100 hover:bg-zinc-50 transition-colors">

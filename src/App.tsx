@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, useSearchParams } from 'react-router-dom'
 import AppShell from '@/components/layout/AppShell'
 import DashboardView from '@/components/dashboard/DashboardView'
 import LeadsTable from '@/components/leads/LeadsTable'
@@ -51,10 +51,29 @@ const TABS: { key: TabType; label: string; color: string; activeClass: string }[
 
 function ProjectsPage() {
   const { services } = useServices()
-  const [activeTab, setActiveTab]       = useState<TabType>('all')
-  const [serviceFilter, setServiceFilter] = useState('all')
-  const [groupBy, setGroupBy]           = useState<GroupBy>('type')
-  const [showCompleted, setShowCompleted] = useState(false)
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  // Hydrate filters from URL (fall back to defaults)
+  const activeTab     = (searchParams.get('tab') as TabType | null) ?? 'all'
+  const serviceFilter = searchParams.get('service') ?? 'all'
+  const groupBy       = (searchParams.get('group') as GroupBy | null) ?? 'type'
+  const showCompleted = searchParams.get('completed') === '1'
+
+  // One setter that updates URL — replaces History entries so back-button isn't cluttered
+  function updateParam(key: string, value: string, defaultValue: string) {
+    const next = new URLSearchParams(searchParams)
+    if (value === defaultValue) next.delete(key)
+    else next.set(key, value)
+    setSearchParams(next, { replace: true })
+  }
+  const setActiveTab     = (t: TabType)  => updateParam('tab', t, 'all')
+  const setServiceFilter = (s: string)   => updateParam('service', s, 'all')
+  const setGroupBy       = (g: GroupBy)  => updateParam('group', g, 'type')
+  const setShowCompleted = (v: boolean | ((prev: boolean) => boolean)) => {
+    const next = typeof v === 'function' ? v(showCompleted) : v
+    updateParam('completed', next ? '1' : '0', '0')
+  }
+
   const [completedCount, setCompletedCount] = useState(0)
   const [formOpen, setFormOpen]         = useState(false)
   const [editProject, setEditProject]   = useState<Project | null>(null)

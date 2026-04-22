@@ -4,7 +4,8 @@ import { useProjects } from '@/hooks/useProjects'
 import { useRevenue } from '@/hooks/useRevenue'
 import { useSettings } from '@/hooks/useSettings'
 import { formatCurrency, cn } from '@/lib/utils'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, FolderKanban } from 'lucide-react'
+import EmptyState from '@/components/shared/EmptyState'
 import PackageRow from './PackageRow'
 import GigRow from './GigRow'
 import RetainerRow from './RetainerRow'
@@ -121,22 +122,23 @@ export default function ProjectsList({
     return <GigRow key={p.id} project={p} onEdit={() => { setEditProject(p); setFormOpen(true) }} onDelete={() => setDeleteTarget(p)} />
   }
 
-  async function handleSave(data: Partial<Project>, payment?: PaymentEntry) {
+  async function handleSave(data: Partial<Project>, payment?: PaymentEntry): Promise<boolean> {
     if (editProject) {
-      updateProject(editProject.id, data)
-    } else {
-      const newId = await createProject(data)
-      if (payment && newId) {
-        createRevenue({
-          amount: payment.amount,
-          status: payment.status,
-          payment_date: payment.payment_date,
-          client_id: data.client_id,
-          project_id: newId,
-          service_type: data.service_type,
-        })
-      }
+      return updateProject(editProject.id, data)
     }
+    const newId = await createProject(data)
+    if (!newId) return false
+    if (payment) {
+      await createRevenue({
+        amount: payment.amount,
+        status: payment.status,
+        payment_date: payment.payment_date,
+        client_id: data.client_id,
+        project_id: newId,
+        service_type: data.service_type,
+      })
+    }
+    return true
   }
 
   function handleBill(project: Project) {
@@ -172,7 +174,14 @@ export default function ProjectsList({
       {isLoading && <div className="text-sm text-zinc-400 py-8 text-center">Loading...</div>}
 
       {!isLoading && filtered.length === 0 && (
-        <div className="text-sm text-zinc-400 py-16 text-center">No projects yet.</div>
+        <EmptyState
+          icon={FolderKanban}
+          title={activeTab === 'all' ? 'No projects yet' : `No ${activeTab}s in this view`}
+          description={activeTab === 'all'
+            ? 'Projects you create will appear here. Start by adding a gig, package, or retainer.'
+            : 'Try another tab, clear the service filter, or toggle Show Completed.'}
+          size="lg"
+        />
       )}
 
       {/* ── Group by Client ── */}
