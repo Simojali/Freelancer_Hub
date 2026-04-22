@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import type { Project, Revenue } from '@/lib/types'
 import { useProjects } from '@/hooks/useProjects'
 import { useRevenue } from '@/hooks/useRevenue'
@@ -14,6 +14,7 @@ import PackageDetailModal from './PackageDetailModal'
 import RetainerDetailModal from './RetainerDetailModal'
 import RevenueFormModal from '@/components/revenue/RevenueFormModal'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
+import type { SortKey } from '@/App'
 
 export type TabType = 'all' | 'retainer' | 'package' | 'gig'
 export type GroupBy = 'type' | 'client'
@@ -27,30 +28,51 @@ interface Props {
   setGroupBy: (g: GroupBy) => void
   showCompleted: boolean
   setShowCompleted: (v: boolean | ((prev: boolean) => boolean)) => void
-  /** Parent sets this to open the add form; ProjectsList resets it after opening */
+  search: string
+  sortKey: SortKey
   formOpen: boolean
   setFormOpen: (v: boolean) => void
   editProject: Project | null
   setEditProject: (p: Project | null) => void
-  onCompletedCount: (n: number) => void
-  onTabCounts: (c: { all: number; retainer: number; package: number; gig: number }) => void
+}
+
+function sortProjects(list: Project[], key: SortKey): Project[] {
+  const sorted = [...list]
+  switch (key) {
+    case 'newest':     sorted.sort((a, b) => b.created_at.localeCompare(a.created_at)); break
+    case 'oldest':     sorted.sort((a, b) => a.created_at.localeCompare(b.created_at)); break
+    case 'name':       sorted.sort((a, b) => a.name.localeCompare(b.name)); break
+    case 'price_desc': sorted.sort((a, b) => (b.price ?? 0) - (a.price ?? 0)); break
+    case 'price_asc':  sorted.sort((a, b) => (a.price ?? 0) - (b.price ?? 0)); break
+    case 'due_date':
+      // Gigs with due_date first, ascending; then items without a date
+      sorted.sort((a, b) => {
+        if (a.due_date && b.due_date) return a.due_date.localeCompare(b.due_date)
+        if (a.due_date) return -1
+        if (b.due_date) return 1
+        return 0
+      })
+      break
+  }
+  return sorted
 }
 
 export default function ProjectsList({
-  activeTab, setActiveTab,
-  serviceFilter, setServiceFilter,
-  groupBy, setGroupBy,
-  showCompleted, setShowCompleted,
+  activeTab,
+  serviceFilter,
+  groupBy,
+  showCompleted,
+  search,
+  sortKey,
   formOpen, setFormOpen,
   editProject, setEditProject,
-  onCompletedCount,
-  onTabCounts,
 }: Props) {
   const { projects, isLoading, mutate, createProject, updateProject, deleteProject } = useProjects()
   const { createRevenue } = useRevenue()
   const { currency } = useSettings()
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
   const [deleteTarget, setDeleteTarget] = useState<Project | null>(null)
+  const [renewTarget, setRenewTarget] = useState<Project | null>(null)
   const [detailProject, setDetailProject] = useState<Project | null>(null)
   const [detailRetainer, setDetailRetainer] = useState<Project | null>(null)
   const [billPrefill, setBillPrefill] = useState<Partial<Revenue> | undefined>(undefined)
@@ -64,60 +86,74 @@ export default function ProjectsList({
     })
   }
 
-  // Base pool: service filter, then optionally hide done gigs
-  const serviceFiltered = projects.filter(p =>
-    serviceFilter === 'all' || p.service_type === serviceFilter
-  )
-  const pool = showCompleted
-    ? serviceFiltered
-    : serviceFiltered.filter(p => !(p.project_type === 'gig' && p.status === 'done'))
-
-  // Tab counts always reflect current showCompleted state
-  const counts = {
-    all:      pool.length,
-    retainer: pool.filter(p => p.project_type === 'retainer').length,
-    package:  pool.filter(p => p.project_type === 'package').length,
-    gig:      pool.filter(p => p.project_type === 'gig').length,
-  }
-
-  // Number of done gigs in the full service-filtered set (for toggle badge)
-  const completedCount = serviceFiltered.filter(p =>
-    p.project_type === 'gig' && p.status === 'done'
-  ).length
-
-  // Inform parent of counts so tabs + completed button stay in sync
-  useEffect(() => { onCompletedCount(completedCount) }, [completedCount])
-  useEffect(() => { onTabCounts(counts) }, [counts.all, counts.retainer, counts.package, counts.gig])
-
-  const filtered = pool.filter(p => activeTab === 'all' || p.project_type === activeTab)
-
-  const retainers = filtered.filter(p => p.project_type === 'retainer')
-  const packages = filtered.filter(p => p.project_type === 'package')
-  const gigs = filtered.filter(p => p.project_type === 'gig')
-
-  // Build client groups for the "by client" view
-  const clientGroups: { key: string; label: string; projects: Project[] }[] = []
-  if (groupBy === 'client') {
-    const map = new Map<string, { label: string; projects: Project[] }>()
-    for (const p of filtered) {
-      const key = p.client_id ?? '__none__'
-      const label = p.clients?.client_name ?? 'No Client'
-      if (!map.has(key)) map.set(key, { label, projects: [] })
-      map.get(key)!.projects.push(p)
+  /**
+   * Compute everything in one memoised pass:
+   *   projects → serviceFilter+search+showCompleted+activeTab+sort
+   *            → buckets (retainers/packages/gigs) OR clientGroups
+   */
+  const { filtered, retainers, packages, gigs, clientGroups } = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    // Single iteration: apply service, search, showCompleted, and tab filters at once.
+    const filtered: Project[] = []
+    for (const p of projects) {
+      if (serviceFilter !== 'all' && p.service_type !== serviceFilter) continue
+      if (q) {
+        const nameHit   = p.name.toLowerCase().includes(q)
+        const clientHit = (p.clients?.client_name ?? '').toLowerCase().includes(q)
+        if (!nameHit && !clientHit) continue
+      }
+      if (!showCompleted && p.project_type === 'gig' && p.status === 'done') continue
+      if (activeTab !== 'all' && p.project_type !== activeTab) continue
+      filtered.push(p)
     }
-    // Named clients first (sorted), then "No Client"
-    const named = [...map.entries()].filter(([k]) => k !== '__none__').sort((a, b) => a[1].label.localeCompare(b[1].label))
-    const none = map.get('__none__')
-    for (const [key, val] of named) clientGroups.push({ key, ...val })
-    if (none) clientGroups.push({ key: '__none__', ...none })
-  }
+
+    const sorted = sortProjects(filtered, sortKey)
+    const retainers: Project[] = []
+    const packages: Project[]  = []
+    const gigs: Project[]      = []
+    for (const p of sorted) {
+      if (p.project_type === 'retainer') retainers.push(p)
+      else if (p.project_type === 'package') packages.push(p)
+      else gigs.push(p)
+    }
+
+    // Build client groups lazily — only needed in "by client" view
+    const clientGroups: { key: string; label: string; projects: Project[] }[] = []
+    if (groupBy === 'client') {
+      const map = new Map<string, { label: string; projects: Project[] }>()
+      for (const p of sorted) {
+        const key = p.client_id ?? '__none__'
+        const label = p.clients?.client_name ?? 'No Client'
+        if (!map.has(key)) map.set(key, { label, projects: [] })
+        map.get(key)!.projects.push(p)
+      }
+      const named = [...map.entries()].filter(([k]) => k !== '__none__').sort((a, b) => a[1].label.localeCompare(b[1].label))
+      const none = map.get('__none__')
+      for (const [key, val] of named) clientGroups.push({ key, ...val })
+      if (none) clientGroups.push({ key: '__none__', ...none })
+    }
+
+    return { filtered: sorted, retainers, packages, gigs, clientGroups }
+  }, [projects, serviceFilter, search, showCompleted, activeTab, sortKey, groupBy])
+
+  // Prune stale keys from the collapsed set whenever groups change.
+  // Keeps the set from growing unbounded as clients come and go.
+  useEffect(() => {
+    if (groupBy !== 'client') return
+    const validKeys = new Set(clientGroups.map(g => g.key))
+    setCollapsed(prev => {
+      const pruned = new Set<string>()
+      for (const k of prev) if (validKeys.has(k)) pruned.add(k)
+      return pruned.size === prev.size ? prev : pruned
+    })
+  }, [clientGroups, groupBy])
 
   function renderProjectRow(p: Project) {
     if (p.project_type === 'retainer') {
       return <RetainerRow key={p.id} project={p} onView={() => setDetailRetainer(p)} onBill={() => handleBill(p)} onEdit={() => { setEditProject(p); setFormOpen(true) }} onDelete={() => setDeleteTarget(p)} />
     }
     if (p.project_type === 'package') {
-      return <PackageRow key={p.id} project={p} onView={() => setDetailProject(p)} onEdit={() => { setEditProject(p); setFormOpen(true) }} onDelete={() => setDeleteTarget(p)} onRenew={() => handleRenew(p)} />
+      return <PackageRow key={p.id} project={p} onView={() => setDetailProject(p)} onEdit={() => { setEditProject(p); setFormOpen(true) }} onDelete={() => setDeleteTarget(p)} onRenew={() => setRenewTarget(p)} />
     }
     return <GigRow key={p.id} project={p} onEdit={() => { setEditProject(p); setFormOpen(true) }} onDelete={() => setDeleteTarget(p)} />
   }
@@ -156,8 +192,8 @@ export default function ProjectsList({
     setRevenueOpen(true)
   }
 
-  function handleRenew(project: Project) {
-    createProject({
+  async function handleRenewConfirm(project: Project) {
+    await createProject({
       name: project.name + ' (Renewed)',
       client_id: project.client_id,
       service_type: project.service_type,
@@ -286,8 +322,16 @@ export default function ProjectsList({
       <RevenueFormModal
         open={revenueOpen}
         onClose={() => { setRevenueOpen(false); setBillPrefill(undefined) }}
-        onSave={data => createRevenue(data)}
+        // billPrefill is only set when the user clicked "Bill" on a retainer —
+        // in that case mark all the project's unbilled deliveries as billed.
+        onSave={data => createRevenue(data, { billRetainer: !!billPrefill?.project_id })}
         prefill={billPrefill}
+        titleOverride={billPrefill?.project_id
+          ? `Bill ${formatCurrency(Number(billPrefill.amount ?? 0), currency)}`
+          : undefined}
+        saveLabelOverride={billPrefill?.project_id
+          ? `Confirm & bill ${formatCurrency(Number(billPrefill.amount ?? 0), currency)}`
+          : undefined}
       />
 
       <AlertDialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
@@ -306,6 +350,33 @@ export default function ProjectsList({
               className="bg-red-600 hover:bg-red-700"
             >
               Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Renew confirmation — previously a single click instantly cloned the
+          package, making accidental duplicates easy. Now it asks first. */}
+      <AlertDialog open={!!renewTarget} onOpenChange={() => setRenewTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Renew this package?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Create a new package <strong>{renewTarget?.name} (Renewed)</strong> with the same
+              rate ({renewTarget?.total_units} units, {formatCurrency(renewTarget?.price ?? 0, currency)}).
+              The original will stay in your history.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                const t = renewTarget
+                setRenewTarget(null)
+                if (t) await handleRenewConfirm(t)
+              }}
+            >
+              Renew
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

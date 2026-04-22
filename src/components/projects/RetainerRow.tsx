@@ -40,10 +40,10 @@ export default function RetainerRow({ project, onView, onBill, onEdit, onDelete 
         <span className="text-sm text-zinc-500 shrink-0">{formatCurrency(unitPrice, currency)} / unit</span>
       )}
 
-      {/* Deliveries & owed */}
+      {/* Unbilled deliveries & owed */}
       <div className="shrink-0 flex items-center gap-2">
         <span className={`text-sm font-semibold ${owed > 0 ? 'text-teal-600' : 'text-zinc-400'}`}>
-          {delivered} delivered → {formatCurrency(owed, currency)} owed
+          {delivered} unbilled → {formatCurrency(owed, currency)} owed
         </span>
         <button
           onClick={onBill}

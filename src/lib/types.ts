@@ -73,6 +73,8 @@ export interface Delivery {
   project_id: string
   description: string | null
   delivered_at: string
+  billed: boolean
+  revenue_id: string | null
   created_at: string
 }
 

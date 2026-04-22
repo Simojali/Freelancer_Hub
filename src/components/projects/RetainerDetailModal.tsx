@@ -25,7 +25,8 @@ export default function RetainerDetailModal({ open, onClose, project, onDelivery
   const { currency } = useSettings()
 
   const unitPrice = project?.unit_price ?? 0
-  const owed = deliveries.length * unitPrice
+  const unbilled = deliveries.filter(d => !d.billed)
+  const owed = unbilled.length * unitPrice
 
   async function handleLog() {
     if (!project) return
@@ -47,10 +48,10 @@ export default function RetainerDetailModal({ open, onClose, project, onDelivery
           <DialogTitle>{project?.name} — Deliveries</DialogTitle>
         </DialogHeader>
 
-        {/* Owed display */}
+        {/* Owed display — only counts unbilled deliveries */}
         <div className="flex items-center justify-between bg-zinc-50 rounded-lg px-4 py-3 mt-2">
           <span className="text-sm text-zinc-500">
-            {deliveries.length} delivered × {formatCurrency(unitPrice, currency)}
+            {unbilled.length} unbilled × {formatCurrency(unitPrice, currency)}
           </span>
           <span className="text-xl font-bold text-teal-600">{formatCurrency(owed, currency)} owed</span>
         </div>
@@ -86,9 +87,19 @@ export default function RetainerDetailModal({ open, onClose, project, onDelivery
             <div className="text-sm text-zinc-400 py-4 text-center">No deliveries logged yet.</div>
           )}
           {deliveries.map(d => (
-            <div key={d.id} className="flex items-center justify-between gap-3 py-2 border-b border-zinc-100 last:border-0">
+            <div
+              key={d.id}
+              className={`flex items-center justify-between gap-3 py-2 border-b border-zinc-100 last:border-0 ${d.billed ? 'opacity-60' : ''}`}
+            >
               <div className="min-w-0">
-                <div className="text-xs text-zinc-400 mb-0.5">{formatDate(d.delivered_at)}</div>
+                <div className="text-xs text-zinc-400 mb-0.5 flex items-center gap-1.5">
+                  {formatDate(d.delivered_at)}
+                  {d.billed && (
+                    <span className="px-1.5 py-0.5 rounded-full bg-zinc-100 text-zinc-500 text-[10px] font-medium">
+                      Billed
+                    </span>
+                  )}
+                </div>
                 <div className="text-sm text-zinc-700">{d.description || <span className="italic text-zinc-400">No description</span>}</div>
               </div>
               <Button
@@ -103,14 +114,14 @@ export default function RetainerDetailModal({ open, onClose, project, onDelivery
           ))}
         </div>
 
-        {/* Bill button */}
+        {/* Bill button — only enabled when there are unbilled deliveries */}
         <Button
           variant="outline"
           className="w-full mt-4 border-teal-300 text-teal-700 hover:bg-teal-50"
           onClick={onBill}
-          disabled={deliveries.length === 0}
+          disabled={unbilled.length === 0}
         >
-          Bill {formatCurrency(owed, currency)}
+          {unbilled.length === 0 ? 'Nothing to bill' : `Bill ${formatCurrency(owed, currency)}`}
         </Button>
       </DialogContent>
     </Dialog>

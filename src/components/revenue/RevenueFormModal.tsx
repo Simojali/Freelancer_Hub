@@ -14,6 +14,10 @@ interface Props {
   onSave: (data: Partial<Revenue>) => Promise<boolean | void>
   revenue?: Revenue | null
   prefill?: Partial<Revenue>
+  /** Override the modal title — useful for bill flows */
+  titleOverride?: string
+  /** Override the save button label */
+  saveLabelOverride?: string
 }
 
 const today = new Date().toISOString().split('T')[0]
@@ -28,7 +32,7 @@ const empty: Partial<Revenue> = {
   project_id: null,
 }
 
-export default function RevenueFormModal({ open, onClose, onSave, revenue, prefill }: Props) {
+export default function RevenueFormModal({ open, onClose, onSave, revenue, prefill, titleOverride, saveLabelOverride }: Props) {
   const [form, setForm] = useState<Partial<Revenue>>(empty)
   const [saving, setSaving] = useState(false)
   const { clients } = useClients()
@@ -71,7 +75,7 @@ export default function RevenueFormModal({ open, onClose, onSave, revenue, prefi
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>{revenue ? 'Edit Payment' : 'Log Payment'}</DialogTitle>
+          <DialogTitle>{titleOverride ?? (revenue ? 'Edit Payment' : 'Log Payment')}</DialogTitle>
         </DialogHeader>
         <div className="space-y-3 mt-2">
           <div>
@@ -156,7 +160,7 @@ export default function RevenueFormModal({ open, onClose, onSave, revenue, prefi
         <div className="flex justify-end gap-2 mt-4">
           <Button variant="outline" onClick={onClose} disabled={saving}>Cancel</Button>
           <Button onClick={handleSave} disabled={saving || !form.amount}>
-            {saving ? 'Saving…' : 'Save'}
+            {saving ? 'Saving…' : (saveLabelOverride ?? 'Save')}
           </Button>
         </div>
       </DialogContent>

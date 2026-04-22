@@ -5,15 +5,26 @@ import { runMutation } from '@/lib/db'
 
 export function useProjects() {
   const { data, error, mutate, isLoading } = useSWR<Project[]>('projects', async () => {
+    // For packages we want total delivery count (capacity tracker).
+    // For retainers we only want UNBILLED deliveries so the "owed" amount
+    // doesn't include deliveries that have already been billed.
     const result = await supabase
       .from('projects')
-      .select('*, clients(client_name), deliveries(count)')
+      .select('*, clients(client_name), all_deliveries:deliveries(count), unbilled_deliveries:deliveries(count)')
+      .eq('unbilled_deliveries.billed', false)
       .order('created_at', { ascending: false })
     if (result.error) throw result.error
-    return (result.data ?? []).map(row => ({
-      ...row,
-      delivery_count: (row.deliveries as { count: number }[] | null)?.[0]?.count ?? 0,
-    })) as Project[]
+    return (result.data ?? []).map(row => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const r = row as any
+      const allCount = (r.all_deliveries as { count: number }[] | null)?.[0]?.count ?? 0
+      const unbilledCount = (r.unbilled_deliveries as { count: number }[] | null)?.[0]?.count ?? 0
+      return {
+        ...row,
+        // Packages use the total (lifetime capacity). Retainers use unbilled.
+        delivery_count: r.project_type === 'package' ? allCount : unbilledCount,
+      }
+    }) as Project[]
   })
 
   async function createProject(body: Partial<Project>): Promise<string | null> {

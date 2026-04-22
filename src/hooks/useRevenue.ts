@@ -1,4 +1,4 @@
-import useSWR from 'swr'
+import useSWR, { mutate as globalMutate } from 'swr'
 import type { Revenue } from '@/lib/types'
 import { supabase } from '@/lib/supabase'
 import { runMutation } from '@/lib/db'
@@ -10,12 +10,34 @@ export function useRevenue() {
     return (result.data ?? []) as Revenue[]
   })
 
-  async function createRevenue(body: Partial<Revenue>): Promise<boolean> {
+  /**
+   * Create a revenue row. When `billRetainer` is true, also mark every
+   * currently-unbilled delivery on `body.project_id` as billed and link
+   * those deliveries to this new revenue row. This is how we avoid
+   * double-billing a retainer.
+   */
+  async function createRevenue(
+    body: Partial<Revenue>,
+    opts?: { billRetainer?: boolean }
+  ): Promise<boolean> {
     const { projects: _p, clients: _c, ...insertBody } = body as Revenue
     const res = await runMutation('Log payment', () =>
-      supabase.from('revenue').insert(insertBody)
+      supabase.from('revenue').insert(insertBody).select('id').single()
     )
     mutate()
+    if (res.ok && opts?.billRetainer && body.project_id) {
+      const revenueId = (res.data as { id: string } | null)?.id ?? null
+      await runMutation('Mark billed', () =>
+        supabase.from('deliveries')
+          .update({ billed: true, revenue_id: revenueId })
+          .eq('project_id', body.project_id!)
+          .eq('billed', false)
+      )
+      // Refresh projects list + per-project deliveries so counts update everywhere
+      globalMutate('projects')
+      globalMutate(['deliveries', body.project_id])
+      globalMutate('dashboard')
+    }
     return res.ok
   }
 

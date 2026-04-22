@@ -18,8 +18,11 @@ export function useDashboard() {
     const [leadsRes, projectsRes, clientsRes, monthlyRevenueRes, recentPaymentsRes] = await Promise.all([
       // All pipeline booleans in a single payload
       supabase.from('leads').select('thumbnail_sample, before_after_made, followed_engaged, contacted_ig, contacted_email, seen, responded, closed'),
-      // All projects with the fields we care about (status, type, unit_price, delivery count)
-      supabase.from('projects').select('id, name, project_type, status, unit_price, created_at, clients(client_name), deliveries(count)').order('created_at', { ascending: false }),
+      // Projects + UNBILLED delivery count (retainer owed should ignore already-billed deliveries)
+      supabase.from('projects')
+        .select('id, name, project_type, status, unit_price, created_at, clients(client_name), unbilled:deliveries(count)')
+        .eq('unbilled.billed', false)
+        .order('created_at', { ascending: false }),
       supabase.from('clients').select('*', { count: 'exact', head: true }),
       supabase.from('revenue').select('amount').eq('status', 'paid').gte('payment_date', firstOfMonth),
       supabase.from('revenue').select('id, amount, status, payment_date, clients(client_name)').order('payment_date', { ascending: false }).limit(5),
@@ -49,12 +52,13 @@ export function useDashboard() {
 
     const monthlyRevenue = (monthlyRevenueRes.data ?? []).reduce((sum, r) => sum + Number(r.amount), 0)
 
-    // Retainer owed + open projects, derived from the single projects payload
+    // Retainer owed (unbilled deliveries × unit_price)
     const retainerOwed = projects
       .filter(p => p.project_type === 'retainer')
       .reduce((sum, p) => {
-        const deliveryCount = (p.deliveries as { count: number }[] | null)?.[0]?.count ?? 0
-        return sum + deliveryCount * Number(p.unit_price ?? 0)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const unbilled = ((p as any).unbilled as { count: number }[] | null)?.[0]?.count ?? 0
+        return sum + unbilled * Number(p.unit_price ?? 0)
       }, 0)
 
     const openProjects = projects.filter(p => {
