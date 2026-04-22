@@ -333,7 +333,7 @@ export default function ProjectsList({
                 </div>
               )}
               {packages.map(p => (
-                <PackageRow key={p.id} project={p} onView={() => setDetailProject(p)} onEdit={() => { setEditProject(p); setFormOpen(true) }} onDelete={() => setDeleteTarget(p)} onRenew={() => handleRenew(p)} />
+                <PackageRow key={p.id} project={p} onView={() => setDetailProject(p)} onEdit={() => { setEditProject(p); setFormOpen(true) }} onDelete={() => setDeleteTarget(p)} onRenew={() => setRenewTarget(p)} />
               ))}
             </div>
           )}

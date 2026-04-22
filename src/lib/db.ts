@@ -10,7 +10,9 @@ import { toast } from 'sonner'
  */
 export async function runMutation<T>(
   label: string,
-  fn: () => Promise<{ data: T | null; error: { message: string } | null }>,
+  // Supabase's query builders are thenables (PromiseLike) rather than real
+  // Promises, so accept either shape. `await` handles both uniformly.
+  fn: () => PromiseLike<{ data: T | null; error: { message: string } | null }>,
   opts?: {
     successMessage?: string
     onSuccess?: (data: T | null) => void
