@@ -14,9 +14,13 @@ interface Props {
   /** Override deliveries (e.g. when showing deliveries for a specific revenue row). Disables billed filter + editing. */
   override?: Delivery[]
   readOnly?: boolean
+  /** Hide the "N deliveries" header row (used when the container already labels the section). */
+  hideHeader?: boolean
+  /** Cap the visible rows — shows at most N most-recent; useful for compact peeks. */
+  limit?: number
 }
 
-export default function DeliveryList({ projectId, showBilledFilter, override, readOnly }: Props) {
+export default function DeliveryList({ projectId, showBilledFilter, override, readOnly, hideHeader, limit }: Props) {
   const { deliveries: fetched, isLoading, updateDelivery, deleteDelivery } = useDeliveries(override ? null : projectId)
   const deliveries = override ?? fetched
 
@@ -26,9 +30,10 @@ export default function DeliveryList({ projectId, showBilledFilter, override, re
   const [editUrl, setEditUrl]   = useState('')
   const [confirmDelete, setConfirmDelete] = useState<Delivery | null>(null)
 
-  const visible = showBilledFilter && !showBilled
+  const filteredByBilled = showBilledFilter && !showBilled
     ? deliveries.filter(d => !d.billed)
     : deliveries
+  const visible = limit ? filteredByBilled.slice(0, limit) : filteredByBilled
   const unbilledCount = deliveries.filter(d => !d.billed).length
 
   function startEdit(d: Delivery) {
@@ -52,20 +57,22 @@ export default function DeliveryList({ projectId, showBilledFilter, override, re
 
   return (
     <div className="space-y-1">
-      <div className="flex items-center justify-between mb-2">
-        <div className="text-xs font-medium text-zinc-500 uppercase tracking-wide">
-          {deliveries.length} deliver{deliveries.length !== 1 ? 'ies' : 'y'}
+      {!hideHeader && (
+        <div className="flex items-center justify-between mb-2">
+          <div className="text-xs font-medium text-zinc-500 uppercase tracking-wide">
+            {deliveries.length} deliver{deliveries.length !== 1 ? 'ies' : 'y'}
+          </div>
+          {showBilledFilter && deliveries.length > unbilledCount && (
+            <button
+              type="button"
+              onClick={() => setShowBilled(v => !v)}
+              className="text-xs text-zinc-500 hover:text-zinc-800"
+            >
+              {showBilled ? 'Hide billed' : `Show all (${deliveries.length})`}
+            </button>
+          )}
         </div>
-        {showBilledFilter && deliveries.length > unbilledCount && (
-          <button
-            type="button"
-            onClick={() => setShowBilled(v => !v)}
-            className="text-xs text-zinc-500 hover:text-zinc-800"
-          >
-            {showBilled ? 'Hide billed' : `Show all (${deliveries.length})`}
-          </button>
-        )}
-      </div>
+      )}
 
       {isLoading && !override && <div className="text-sm text-zinc-400 py-4 text-center">Loading...</div>}
       {!isLoading && visible.length === 0 && (

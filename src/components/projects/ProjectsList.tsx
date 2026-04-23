@@ -83,6 +83,7 @@ export default function ProjectsList({
   const { createRevenue } = useRevenue()
   const { currency } = useSettings()
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
+  const [expanded, setExpanded] = useState<Set<string>>(new Set())
   const [deleteTarget, setDeleteTarget] = useState<Project | null>(null)
   const [renewTarget, setRenewTarget] = useState<Project | null>(null)
   const [detailProject, setDetailProject] = useState<Project | null>(null)
@@ -94,6 +95,14 @@ export default function ProjectsList({
     setCollapsed(prev => {
       const next = new Set(prev)
       next.has(key) ? next.delete(key) : next.add(key)
+      return next
+    })
+  }
+
+  function toggleExpand(id: string) {
+    setExpanded(prev => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
       return next
     })
   }
@@ -179,10 +188,19 @@ export default function ProjectsList({
 
   function renderProjectRow(p: Project) {
     if (p.project_type === 'retainer') {
-      return <RetainerRow key={p.id} project={p} onView={() => setDetailRetainer(p)} onBill={() => handleBill(p)} onEdit={() => { setEditProject(p); setFormOpen(true) }} onDelete={() => setDeleteTarget(p)} />
+      return <RetainerRow key={p.id} project={p}
+        isExpanded={expanded.has(p.id)} onToggleExpand={() => toggleExpand(p.id)}
+        onView={() => setDetailRetainer(p)} onBill={() => handleBill(p)}
+        onEdit={() => { setEditProject(p); setFormOpen(true) }}
+        onDelete={() => setDeleteTarget(p)} />
     }
     if (p.project_type === 'package') {
-      return <PackageRow key={p.id} project={p} onView={() => setDetailProject(p)} onEdit={() => { setEditProject(p); setFormOpen(true) }} onDelete={() => setDeleteTarget(p)} onRenew={() => setRenewTarget(p)} />
+      return <PackageRow key={p.id} project={p}
+        isExpanded={expanded.has(p.id)} onToggleExpand={() => toggleExpand(p.id)}
+        onView={() => setDetailProject(p)}
+        onEdit={() => { setEditProject(p); setFormOpen(true) }}
+        onDelete={() => setDeleteTarget(p)}
+        onRenew={() => setRenewTarget(p)} />
     }
     return <GigRow key={p.id} project={p} onEdit={() => { setEditProject(p); setFormOpen(true) }} onDelete={() => setDeleteTarget(p)} />
   }
@@ -318,7 +336,11 @@ export default function ProjectsList({
                 </div>
               )}
               {retainers.map(p => (
-                <RetainerRow key={p.id} project={p} onView={() => setDetailRetainer(p)} onBill={() => handleBill(p)} onEdit={() => { setEditProject(p); setFormOpen(true) }} onDelete={() => setDeleteTarget(p)} />
+                <RetainerRow key={p.id} project={p}
+                  isExpanded={expanded.has(p.id)} onToggleExpand={() => toggleExpand(p.id)}
+                  onView={() => setDetailRetainer(p)} onBill={() => handleBill(p)}
+                  onEdit={() => { setEditProject(p); setFormOpen(true) }}
+                  onDelete={() => setDeleteTarget(p)} />
               ))}
             </div>
           )}
@@ -333,7 +355,12 @@ export default function ProjectsList({
                 </div>
               )}
               {packages.map(p => (
-                <PackageRow key={p.id} project={p} onView={() => setDetailProject(p)} onEdit={() => { setEditProject(p); setFormOpen(true) }} onDelete={() => setDeleteTarget(p)} onRenew={() => setRenewTarget(p)} />
+                <PackageRow key={p.id} project={p}
+                  isExpanded={expanded.has(p.id)} onToggleExpand={() => toggleExpand(p.id)}
+                  onView={() => setDetailProject(p)}
+                  onEdit={() => { setEditProject(p); setFormOpen(true) }}
+                  onDelete={() => setDeleteTarget(p)}
+                  onRenew={() => setRenewTarget(p)} />
               ))}
             </div>
           )}
