@@ -84,6 +84,7 @@ export interface Delivery {
   project_id: string
   description: string | null
   delivered_at: string
+  work_url: string | null
   billed: boolean
   revenue_id: string | null
   created_at: string
@@ -102,6 +103,8 @@ export interface Revenue {
   project_id: string | null
   clients?: { client_name: string } | null
   projects?: { name: string } | null
+  /** Count of deliveries linked to this revenue row (retainer bill audit) */
+  linked_delivery_count?: number
 }
 
 export interface Settings {

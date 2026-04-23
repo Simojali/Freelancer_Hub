@@ -5,9 +5,17 @@ import { runMutation } from '@/lib/db'
 
 export function useRevenue() {
   const { data, error, mutate, isLoading } = useSWR<Revenue[]>('revenue', async () => {
-    const result = await supabase.from('revenue').select('*, clients(client_name), projects(name)').order('payment_date', { ascending: false })
+    const result = await supabase
+      .from('revenue')
+      .select('*, clients(client_name), projects(name), linked_deliveries:deliveries(count)')
+      .order('payment_date', { ascending: false })
     if (result.error) throw result.error
-    return (result.data ?? []) as Revenue[]
+    return (result.data ?? []).map(row => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const r = row as any
+      const count = (r.linked_deliveries as { count: number }[] | null)?.[0]?.count ?? 0
+      return { ...row, linked_delivery_count: count }
+    }) as Revenue[]
   })
 
   /**

@@ -3,12 +3,13 @@ import type { Revenue } from '@/lib/types'
 import { useRevenue } from '@/hooks/useRevenue'
 import { useSettings } from '@/hooks/useSettings'
 import { Button } from '@/components/ui/button'
-import { Plus, Pencil, Trash2, DollarSign } from 'lucide-react'
+import { Plus, Pencil, Trash2, DollarSign, Package } from 'lucide-react'
 import EmptyState from '@/components/shared/EmptyState'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import ServiceBadge from '@/components/shared/ServiceBadge'
 import PaymentStatusBadge from './PaymentStatusBadge'
 import RevenueFormModal from './RevenueFormModal'
+import RevenueDeliveriesModal from './RevenueDeliveriesModal'
 import MonthlyChart from './MonthlyChart'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 
@@ -18,6 +19,7 @@ export default function RevenueTable() {
   const [formOpen, setFormOpen] = useState(false)
   const [editItem, setEditItem] = useState<Revenue | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Revenue | null>(null)
+  const [deliveriesFor, setDeliveriesFor] = useState<Revenue | null>(null)
 
   const totalPaid = revenue.filter(r => r.status === 'paid').reduce((s, r) => s + Number(r.amount), 0)
   const totalPending = revenue.filter(r => r.status === 'pending').reduce((s, r) => s + Number(r.amount), 0)
@@ -86,6 +88,18 @@ export default function RevenueTable() {
                 <td className="px-3 py-2.5"><PaymentStatusBadge status={item.status} /></td>
                 <td className="px-3 py-2.5">
                   <div className="flex justify-end gap-1">
+                    {(item.linked_delivery_count ?? 0) > 0 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 px-2 text-teal-600 hover:text-teal-700"
+                        onClick={() => setDeliveriesFor(item)}
+                        title="View deliveries billed on this payment"
+                      >
+                        <Package className="w-3.5 h-3.5 mr-1" />
+                        <span className="text-xs">{item.linked_delivery_count}</span>
+                      </Button>
+                    )}
                     <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => { setEditItem(item); setFormOpen(true) }}>
                       <Pencil className="w-3.5 h-3.5" />
                     </Button>
@@ -101,6 +115,12 @@ export default function RevenueTable() {
       </div>
 
       <RevenueFormModal open={formOpen} onClose={() => setFormOpen(false)} onSave={handleSave} revenue={editItem} />
+
+      <RevenueDeliveriesModal
+        open={!!deliveriesFor}
+        onClose={() => setDeliveriesFor(null)}
+        revenue={deliveriesFor}
+      />
 
       <AlertDialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
         <AlertDialogContent>

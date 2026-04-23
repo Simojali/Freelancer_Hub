@@ -1,11 +1,8 @@
-import { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Trash2, Plus } from 'lucide-react'
 import type { Project } from '@/lib/types'
 import { useDeliveries } from '@/hooks/useDeliveries'
-import { formatDate } from '@/lib/utils'
+import DeliveryLogForm from './DeliveryLogForm'
+import DeliveryList from './DeliveryList'
 
 interface Props {
   open: boolean
@@ -13,8 +10,6 @@ interface Props {
   project: Project | null
   onDeliveryChange: () => void
 }
-
-const today = new Date().toISOString().split('T')[0]
 
 function creditsColor(left: number, total: number): string {
   if (total === 0) return 'text-zinc-400'
@@ -25,26 +20,12 @@ function creditsColor(left: number, total: number): string {
 }
 
 export default function PackageDetailModal({ open, onClose, project, onDeliveryChange }: Props) {
-  const [description, setDescription] = useState('')
-  const [deliveredAt, setDeliveredAt] = useState(today)
-  const { deliveries, isLoading, logDelivery, deleteDelivery } = useDeliveries(project?.id)
+  const { deliveries } = useDeliveries(project?.id)
 
   const total = project?.total_units ?? 0
   const delivered = deliveries.length
   const creditsLeft = total - delivered
-
-  async function handleLog() {
-    if (!project) return
-    await logDelivery({ description: description || undefined, delivered_at: deliveredAt })
-    onDeliveryChange()
-    setDescription('')
-    setDeliveredAt(today)
-  }
-
-  async function handleDelete(id: string) {
-    await deleteDelivery(id)
-    onDeliveryChange()
-  }
+  const outOfCredits = creditsLeft <= 0 && total > 0
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -61,55 +42,19 @@ export default function PackageDetailModal({ open, onClose, project, onDeliveryC
           </span>
         </div>
 
-        {/* Log delivery form */}
-        <div className="space-y-2 mt-3">
-          <div className="text-xs font-medium text-zinc-500 uppercase tracking-wide">Log a delivery</div>
-          <Input
-            value={description}
-            onChange={e => setDescription(e.target.value)}
-            placeholder="Description (optional, e.g. Episode #24 thumbnail)"
+        {/* Log form */}
+        <div className="mt-3">
+          <DeliveryLogForm
+            projectId={project?.id}
+            onLogged={onDeliveryChange}
+            disabled={outOfCredits}
+            disabledReason="No credits remaining. Ask client to renew."
           />
-          <div className="flex gap-2">
-            <Input
-              type="date"
-              value={deliveredAt}
-              onChange={e => setDeliveredAt(e.target.value)}
-              className="flex-1"
-            />
-            <Button size="sm" onClick={handleLog} disabled={creditsLeft <= 0}>
-              <Plus className="w-4 h-4 mr-1" /> Add
-            </Button>
-          </div>
-          {creditsLeft <= 0 && (
-            <p className="text-xs text-red-500">No credits remaining. Ask client to renew.</p>
-          )}
         </div>
 
-        {/* Delivery list */}
-        <div className="mt-4 space-y-1">
-          <div className="text-xs font-medium text-zinc-500 uppercase tracking-wide mb-2">
-            {deliveries.length} deliver{deliveries.length !== 1 ? 'ies' : 'y'}
-          </div>
-          {isLoading && <div className="text-sm text-zinc-400 py-4 text-center">Loading...</div>}
-          {!isLoading && deliveries.length === 0 && (
-            <div className="text-sm text-zinc-400 py-4 text-center">No deliveries logged yet.</div>
-          )}
-          {deliveries.map(d => (
-            <div key={d.id} className="flex items-center justify-between gap-3 py-2 border-b border-zinc-100 last:border-0">
-              <div className="min-w-0">
-                <div className="text-xs text-zinc-400 mb-0.5">{formatDate(d.delivered_at)}</div>
-                <div className="text-sm text-zinc-700">{d.description || <span className="italic text-zinc-400">No description</span>}</div>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-7 w-7 p-0 text-red-400 hover:text-red-600 shrink-0"
-                onClick={() => handleDelete(d.id)}
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </Button>
-            </div>
-          ))}
+        {/* List */}
+        <div className="mt-4">
+          <DeliveryList projectId={project?.id} />
         </div>
       </DialogContent>
     </Dialog>

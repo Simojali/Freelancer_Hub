@@ -16,10 +16,41 @@ export function useDeliveries(projectId: string | null | undefined) {
     return (result.data ?? []) as Delivery[]
   })
 
-  async function logDelivery(body: { description?: string; delivered_at: string }) {
+  async function logDelivery(body: { description?: string; delivered_at: string; work_url?: string }) {
     const res = await runMutation('Log delivery', () =>
       supabase.from('deliveries').insert({ ...body, project_id: projectId })
     )
+    mutate()
+    return res.ok
+  }
+
+  /**
+   * Batch-log `count` identical deliveries in a single request — used when
+   * the user delivers multiple units of the same thing in one day.
+   */
+  async function logDeliveries(
+    count: number,
+    body: { description?: string; delivered_at: string; work_url?: string }
+  ): Promise<boolean> {
+    if (count <= 0) return false
+    if (count === 1) return logDelivery(body)
+    const rows = Array.from({ length: count }, () => ({ ...body, project_id: projectId }))
+    const res = await runMutation(`Log ${count} deliveries`, () =>
+      supabase.from('deliveries').insert(rows)
+    )
+    mutate()
+    return res.ok
+  }
+
+  async function updateDelivery(
+    id: string,
+    patch: { description?: string | null; delivered_at?: string; work_url?: string | null }
+  ): Promise<boolean> {
+    const prev = data
+    mutate(list => list?.map(d => d.id === id ? { ...d, ...patch } : d), false)
+    const res = await runMutation('Update delivery', () =>
+      supabase.from('deliveries').update(patch).eq('id', id)
+    , { onError: () => mutate(prev, false) })
     mutate()
     return res.ok
   }
@@ -51,5 +82,5 @@ export function useDeliveries(projectId: string | null | undefined) {
     return res.ok
   }
 
-  return { deliveries: data ?? [], isLoading, error, logDelivery, deleteDelivery, markAllBilled }
+  return { deliveries: data ?? [], isLoading, error, logDelivery, logDeliveries, updateDelivery, deleteDelivery, markAllBilled }
 }
