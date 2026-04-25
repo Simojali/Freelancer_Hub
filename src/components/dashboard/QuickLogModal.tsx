@@ -1,14 +1,21 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useProjects } from '@/hooks/useProjects'
 import { useSettings } from '@/hooks/useSettings'
+import { useDeliveries } from '@/hooks/useDeliveries'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Button } from '@/components/ui/button'
 import DeliveryLogForm from '@/components/projects/DeliveryLogForm'
+import DeliveryList from '@/components/projects/DeliveryList'
 import { formatCurrency } from '@/lib/utils'
+import { ArrowRight } from 'lucide-react'
+import type { Project } from '@/lib/types'
 
 interface Props {
   open: boolean
   onClose: () => void
+  /** Called when the user clicks "See all" in the recent deliveries list */
+  onViewAll?: (project: Project) => void
 }
 
 /**
@@ -16,7 +23,7 @@ interface Props {
  * header. The picker resets to empty every time the modal opens — the user
  * always picks the project explicitly (or it auto-picks when there's just one).
  */
-export default function QuickLogModal({ open, onClose }: Props) {
+export default function QuickLogModal({ open, onClose, onViewAll }: Props) {
   const { projects } = useProjects()
   const { currency } = useSettings()
 
@@ -54,6 +61,11 @@ export default function QuickLogModal({ open, onClose }: Props) {
   }, [open, eligible])
 
   const selectedProject = selectedId ? eligible.find(p => p.id === selectedId) : undefined
+
+  // Fetch deliveries for the selected project so we can show the recent 5
+  // and the total count for the "See all" button. SWR dedups with the same
+  // key elsewhere, so this is essentially free.
+  const { deliveries: projectDeliveries } = useDeliveries(selectedProject?.id)
 
   let context: React.ReactNode = null
   if (selectedProject) {
@@ -122,8 +134,33 @@ export default function QuickLogModal({ open, onClose }: Props) {
                   key={selectedProject.id}
                   projectId={selectedProject.id}
                   hideQuantity={selectedProject.project_type === 'package'}
-                  onLogged={onClose}
                 />
+              )}
+
+              {/* Recent deliveries — last 5 most-recent + see-all CTA */}
+              {selectedProject && (
+                <div className="border-t border-zinc-100 pt-3 mt-1">
+                  <div className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mb-1.5">
+                    {projectDeliveries.length === 0
+                      ? 'No deliveries yet'
+                      : projectDeliveries.length > 5
+                        ? `Recent — showing 5 of ${projectDeliveries.length}`
+                        : `${projectDeliveries.length} deliver${projectDeliveries.length !== 1 ? 'ies' : 'y'}`}
+                  </div>
+                  <DeliveryList projectId={selectedProject.id} limit={5} hideHeader />
+                  {projectDeliveries.length > 0 && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="w-full mt-3"
+                      onClick={() => onViewAll?.(selectedProject)}
+                    >
+                      See all {projectDeliveries.length} deliver{projectDeliveries.length !== 1 ? 'ies' : 'y'}
+                      <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                    </Button>
+                  )}
+                </div>
               )}
             </>
           )}

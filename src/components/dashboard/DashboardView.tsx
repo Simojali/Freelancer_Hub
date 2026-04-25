@@ -98,7 +98,19 @@ export default function DashboardView() {
         </div>
       </div>
 
-      <QuickLogModal open={quickLogOpen} onClose={() => setQuickLogOpen(false)} />
+      <QuickLogModal
+        open={quickLogOpen}
+        onClose={() => setQuickLogOpen(false)}
+        onViewAll={p => {
+          // "See all deliveries" → close the modal and navigate to the project's
+          // client profile (where the user can expand the project for the full
+          // delivery list, billing, etc). Fallback to the projects page when
+          // a project somehow has no client.
+          setQuickLogOpen(false)
+          if (p.client_id) navigate(`/clients/${p.client_id}`)
+          else navigate(`/projects?q=${encodeURIComponent(p.name)}`)
+        }}
+      />
     </div>
   )
 }
