@@ -363,6 +363,7 @@ export default function ClientProfilePage() {
         ] as const).map(t => (
           <button
             key={t.key}
+            type="button"
             onClick={() => setTab(t.key)}
             className={cn(
               'px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap',
@@ -383,7 +384,7 @@ export default function ClientProfilePage() {
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-medium text-zinc-700">Recent projects</h2>
               {projects.length > 5 && (
-                <button onClick={() => setTab('projects')} className="text-xs text-zinc-500 hover:text-zinc-900">
+                <button type="button" onClick={() => setTab('projects')} className="text-xs text-zinc-500 hover:text-zinc-900">
                   See all {projects.length} →
                 </button>
               )}
@@ -398,7 +399,7 @@ export default function ClientProfilePage() {
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-medium text-zinc-700">Recent payments</h2>
               {revenue.length > 5 && (
-                <button onClick={() => setTab('payments')} className="text-xs text-zinc-500 hover:text-zinc-900">
+                <button type="button" onClick={() => setTab('payments')} className="text-xs text-zinc-500 hover:text-zinc-900">
                   See all {revenue.length} →
                 </button>
               )}
@@ -581,6 +582,7 @@ function PaymentList({ items, onViewDeliveries, currency }: PaymentListProps) {
             {r.description && <span className="text-xs text-zinc-400">{r.description}</span>}
             {(r.linked_delivery_count ?? 0) > 0 && (
               <button
+                type="button"
                 onClick={() => onViewDeliveries(r)}
                 className="text-xs text-teal-600 hover:text-teal-800 hover:underline"
               >

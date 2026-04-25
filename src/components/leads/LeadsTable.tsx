@@ -11,6 +11,7 @@ import LeadDeleteDialog from './LeadDeleteDialog'
 import ServiceBadge from '@/components/shared/ServiceBadge'
 import { useServices } from '@/hooks/useServices'
 import EmptyState from '@/components/shared/EmptyState'
+import PipelineFunnel from '@/components/shared/PipelineFunnel'
 
 // Pipeline steps shown in the Outreach section (sample already done)
 const OUTREACH_COLS: { field: keyof Lead; label: string }[] = [
@@ -59,6 +60,19 @@ export default function LeadsTable() {
   const prospects = leads.filter(l => !l.thumbnail_sample)
   const outreach = leads.filter(l => l.thumbnail_sample)
 
+  // Pipeline counts derived from the currently-loaded leads. Respects the
+  // service filter so e.g. "Thumbnails" view shows the thumbnail-only funnel.
+  const pipeline = {
+    sample:         outreach.length,
+    beforeAfter:    leads.filter(l => l.before_after_made).length,
+    followed:       leads.filter(l => l.followed_engaged).length,
+    contactedIg:    leads.filter(l => l.contacted_ig).length,
+    contactedEmail: leads.filter(l => l.contacted_email).length,
+    seen:           leads.filter(l => l.seen).length,
+    responded:      leads.filter(l => l.responded).length,
+    closed:         leads.filter(l => l.closed).length,
+  }
+
   async function handleSave(data: Partial<Lead>): Promise<boolean> {
     return editLead ? updateLead(editLead.id, data) : createLead(data)
   }
@@ -103,6 +117,11 @@ export default function LeadsTable() {
       </div>
 
       {isLoading && <div className="text-center py-8 text-zinc-400 text-sm">Loading...</div>}
+
+      {/* Outreach pipeline — visible once at least one lead has reached the sample stage */}
+      {!isLoading && pipeline.sample > 0 && (
+        <PipelineFunnel pipeline={pipeline} total={pipeline.sample} />
+      )}
 
       {/* Full empty state — only when no leads at all and no filters active */}
       {!isLoading && leads.length === 0 && service === 'all' && !search && (

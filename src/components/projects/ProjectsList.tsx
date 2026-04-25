@@ -301,6 +301,7 @@ export default function ProjectsList({
         <div key={group.key} className="space-y-2">
           {/* Client header */}
           <button
+            type="button"
             onClick={() => toggleCollapse(group.key)}
             className="flex items-center gap-2 w-full text-left group"
           >

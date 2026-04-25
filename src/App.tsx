@@ -50,12 +50,9 @@ export function rangeBounds(preset: DateRange, customFrom?: string, customTo?: s
 }
 
 function DashboardPage() {
-  return (
-    <div className="space-y-1">
-      <h1 className="text-xl font-semibold text-zinc-900 mb-6">Dashboard</h1>
-      <DashboardView />
-    </div>
-  )
+  // Title + Quick Log button are rendered inside DashboardView so the button
+  // can sit beside the title without prop-drilling state up here.
+  return <DashboardView />
 }
 
 function LeadsPage() {
@@ -242,6 +239,7 @@ function ProjectsPage() {
           {/* Overdue pill — only meaningful when gigs are in view */}
           {(activeTab === 'all' || activeTab === 'gig') && (
             <button
+              type="button"
               onClick={() => setOverdueOnly(!overdueOnly)}
               className={cn('flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border text-xs transition-colors',
                 overdueOnly
@@ -256,6 +254,7 @@ function ProjectsPage() {
           {/* Unpaid pill — only meaningful when gigs are in view; auto-hides when nothing unpaid */}
           {(activeTab === 'all' || activeTab === 'gig') && unpaidCount > 0 && (
             <button
+              type="button"
               onClick={() => setUnpaidOnly(!unpaidOnly)}
               className={cn('flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border text-xs transition-colors',
                 unpaidOnly
@@ -272,11 +271,11 @@ function ProjectsPage() {
 
           {/* Group by */}
           <div className="flex items-center rounded-md border border-zinc-200 overflow-hidden text-xs">
-            <button onClick={() => setGroupBy('type')}
+            <button type="button" onClick={() => setGroupBy('type')}
               className={cn('flex items-center gap-1.5 px-2.5 py-1.5 transition-colors', groupBy === 'type' ? 'bg-zinc-900 text-white' : 'text-zinc-500 hover:bg-zinc-50')}>
               <Layers className="w-3 h-3" /> Type
             </button>
-            <button onClick={() => setGroupBy('client')}
+            <button type="button" onClick={() => setGroupBy('client')}
               className={cn('flex items-center gap-1.5 px-2.5 py-1.5 transition-colors border-l border-zinc-200', groupBy === 'client' ? 'bg-zinc-900 text-white' : 'text-zinc-500 hover:bg-zinc-50')}>
               <Users className="w-3 h-3" /> Client
             </button>
@@ -284,7 +283,7 @@ function ProjectsPage() {
 
           {/* Show completed */}
           {completedCount > 0 && (
-            <button onClick={() => setShowCompleted(v => !v)}
+            <button type="button" onClick={() => setShowCompleted(v => !v)}
               className={cn('flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border text-xs transition-colors',
                 showCompleted ? 'bg-zinc-900 text-white border-zinc-900' : 'border-zinc-200 text-zinc-500 hover:bg-zinc-50')}>
               <CheckCheck className="w-3 h-3" />
@@ -315,7 +314,7 @@ function ProjectsPage() {
       {/* Tabs */}
       <div className="flex items-center border-b border-zinc-200 overflow-x-auto">
         {TABS.map(tab => (
-          <button key={tab.key} onClick={() => setActiveTab(tab.key)}
+          <button key={tab.key} type="button" onClick={() => setActiveTab(tab.key)}
             className={cn('flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap',
               activeTab === tab.key ? tab.activeClass : 'border-transparent text-zinc-400 hover:text-zinc-600')}>
             {tab.key !== 'all' && <span className={cn('w-2 h-2 rounded-full shrink-0', tab.color)} />}

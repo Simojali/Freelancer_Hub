@@ -28,6 +28,7 @@ export default function RetainerRow({ project, onView, onBill, onEdit, onDelete,
         {/* Expand chevron */}
         {onToggleExpand && (
           <button
+            type="button"
             onClick={onToggleExpand}
             className="shrink-0 p-1 -m-1 text-zinc-400 hover:text-zinc-700 rounded"
             aria-label={isExpanded ? 'Collapse deliveries' : 'Expand deliveries'}
@@ -61,6 +62,7 @@ export default function RetainerRow({ project, onView, onBill, onEdit, onDelete,
             {delivered} unbilled → {formatCurrency(owed, currency)} owed
           </span>
           <button
+            type="button"
             onClick={onBill}
             disabled={delivered === 0}
             className="text-xs px-2 py-0.5 rounded-full border font-medium bg-teal-50 text-teal-600 border-teal-200 hover:bg-teal-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"

@@ -37,6 +37,7 @@ export default function PackageRow({ project, onView, onEdit, onDelete, onRenew,
         {/* Expand chevron */}
         {onToggleExpand && (
           <button
+            type="button"
             onClick={onToggleExpand}
             className="shrink-0 p-1 -m-1 text-zinc-400 hover:text-zinc-700 rounded"
             aria-label={isExpanded ? 'Collapse deliveries' : 'Expand deliveries'}
@@ -71,6 +72,7 @@ export default function PackageRow({ project, onView, onEdit, onDelete, onRenew,
           </span>
           {isEmpty && (
             <button
+              type="button"
               onClick={onRenew}
               className="text-xs px-2 py-0.5 rounded-full border font-medium bg-red-50 text-red-600 border-red-200 hover:bg-red-100 cursor-pointer transition-colors"
             >

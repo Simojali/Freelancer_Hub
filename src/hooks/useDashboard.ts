@@ -21,13 +21,14 @@ export function useDashboard() {
       // Projects + UNBILLED delivery count (retainer owed ignores billed) +
       // paid revenue rows (needed to derive unpaid gig totals)
       supabase.from('projects')
-        .select('id, name, project_type, status, price, unit_price, created_at, clients(client_name), unbilled:deliveries(count), paid_revenue:revenue(amount, status)')
+        .select('id, client_id, name, project_type, status, price, unit_price, total_units, created_at, clients(client_name), unbilled:deliveries(count), all_deliveries:deliveries(count), paid_revenue:revenue(amount, status)')
         .eq('unbilled.billed', false)
         .eq('paid_revenue.status', 'paid')
         .order('created_at', { ascending: false }),
       supabase.from('clients').select('*', { count: 'exact', head: true }),
-      supabase.from('revenue').select('amount').eq('status', 'paid').gte('payment_date', firstOfMonth),
-      supabase.from('revenue').select('id, amount, status, payment_date, clients(client_name)').order('payment_date', { ascending: false }).limit(5),
+      // This-month revenue with client info so we can compute the top client
+      supabase.from('revenue').select('amount, client_id, clients(client_name)').eq('status', 'paid').gte('payment_date', firstOfMonth),
+      supabase.from('revenue').select('id, amount, status, payment_date, client_id, clients(client_name)').order('payment_date', { ascending: false }).limit(5),
     ])
 
     if (leadsRes.error) throw leadsRes.error
@@ -52,7 +53,26 @@ export function useDashboard() {
     const closedLeads = pipeline.closed
     const conversionRate = totalLeads > 0 ? ((closedLeads / totalLeads) * 100).toFixed(1) : '0.0'
 
-    const monthlyRevenue = (monthlyRevenueRes.data ?? []).reduce((sum, r) => sum + Number(r.amount), 0)
+    const monthlyRevenueRows = monthlyRevenueRes.data ?? []
+    const monthlyRevenue = monthlyRevenueRows.reduce((sum, r) => sum + Number(r.amount), 0)
+
+    // Top client this month — sum paid revenue per client, pick the leader.
+    const monthByClient = new Map<string, { name: string; amount: number }>()
+    for (const row of monthlyRevenueRows) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const r = row as any
+      if (!r.client_id) continue
+      // Supabase types nested joins as arrays even for to-one rels; handle both.
+      const c = Array.isArray(r.clients) ? r.clients[0] : r.clients
+      const name = c?.client_name ?? 'Unknown'
+      const cur = monthByClient.get(r.client_id) ?? { name, amount: 0 }
+      cur.amount += Number(r.amount ?? 0)
+      monthByClient.set(r.client_id, cur)
+    }
+    let topClient: { name: string; amount: number } | null = null
+    for (const v of monthByClient.values()) {
+      if (!topClient || v.amount > topClient.amount) topClient = v
+    }
 
     // Retainer owed (unbilled deliveries × unit_price)
     const retainerOwed = projects
@@ -82,6 +102,37 @@ export function useDashboard() {
       return sum + Math.max(0, price - paid)
     }, 0)
 
+    // Distinct clients with at least one outstanding piece of work:
+    //   - retainer (always ongoing)
+    //   - package with credits left
+    //   - gig in progress
+    //   - gig done but not fully paid (we're owed money)
+    const activeClientIds = new Set<string>()
+    for (const p of projects) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const r = p as any
+      if (!r.client_id) continue
+      let active = false
+      if (r.project_type === 'retainer') {
+        active = true
+      } else if (r.project_type === 'package') {
+        const allCount = (r.all_deliveries as { count: number }[] | null)?.[0]?.count ?? 0
+        const total = Number(r.total_units ?? 0)
+        active = total === 0 || allCount < total // credits left
+      } else if (r.project_type === 'gig') {
+        if (r.status !== 'done') {
+          active = true
+        } else {
+          const price = Number(r.price ?? 0)
+          const paid = ((r.paid_revenue as { amount: number }[] | null) ?? [])
+            .reduce((s: number, x: { amount: number }) => s + Number(x.amount ?? 0), 0)
+          active = price > 0 && paid < price // unpaid gig still active
+        }
+      }
+      if (active) activeClientIds.add(r.client_id)
+    }
+    const activeClients = activeClientIds.size
+
     const openProjects = projects.filter(p => {
       if (p.project_type === 'gig') return p.status !== 'done'
       return true // packages + retainers always count as open
@@ -93,7 +144,9 @@ export function useDashboard() {
       kpis: {
         totalLeads,
         conversionRate: `${conversionRate}%`,
-        activeClients: clientsRes.count ?? 0,
+        activeClients,
+        totalClients: clientsRes.count ?? 0,
+        topClientThisMonth: topClient,
         monthlyRevenue,
         retainerOwed,
         unpaidGigs: unpaidGigs.length,

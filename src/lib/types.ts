@@ -118,7 +118,12 @@ export interface DashboardData {
   kpis: {
     totalLeads: number
     conversionRate: string
+    /** Distinct clients with open work or unpaid gigs */
     activeClients: number
+    /** All-time client count, for the active/total ratio */
+    totalClients: number
+    /** Highest-paying client THIS month (paid revenue) */
+    topClientThisMonth: { name: string; amount: number } | null
     monthlyRevenue: number
     retainerOwed: number
     unpaidGigs: number

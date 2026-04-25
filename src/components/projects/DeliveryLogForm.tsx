@@ -68,6 +68,7 @@ export default function DeliveryLogForm({ projectId, onLogged, disabled, disable
     }
   }
 
+
   return (
     <div className="space-y-2" onKeyDown={handleKeyDown}>
       <div className="text-xs font-medium text-zinc-500 uppercase tracking-wide">Log a delivery</div>
@@ -113,7 +114,7 @@ export default function DeliveryLogForm({ projectId, onLogged, disabled, disable
             />
           </div>
         )}
-        <Button size="sm" onClick={handleLog} disabled={disabled || saving}>
+        <Button type="button" size="sm" onClick={handleLog} disabled={disabled || saving}>
           <Plus className="w-4 h-4 mr-1" />
           {saving ? 'Adding…' : quantity > 1 ? `Add ${quantity}` : 'Add'}
         </Button>
