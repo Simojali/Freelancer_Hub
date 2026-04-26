@@ -129,6 +129,14 @@ export interface DashboardData {
     unpaidGigs: number
     gigsOwed: number
     openProjects: number
+    /** Delivery counts for 3 trailing windows + their prior-period comparisons */
+    deliveryStats: {
+      yesterday: { count: number; prior: number }
+      week:      { count: number; prior: number }
+      month30:   { count: number; prior: number }
+      /** Daily counts for the last 30 days, used by the sparkline */
+      daily:     { date: string; count: number }[]
+    }
   }
   pipeline: {
     sample: number

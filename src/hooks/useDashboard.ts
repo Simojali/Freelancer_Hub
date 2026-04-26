@@ -14,8 +14,12 @@ export function useDashboard() {
   const { data, error, isLoading } = useSWR<DashboardData>('dashboard', async () => {
     const now = new Date()
     const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]
+    // 60 days back covers both the 30-day window and the prior 30-day window
+    // (and trivially covers the smaller windows + their priors).
+    const sixtyDaysAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 60)
+      .toISOString().split('T')[0]
 
-    const [leadsRes, projectsRes, clientsRes, monthlyRevenueRes, recentPaymentsRes] = await Promise.all([
+    const [leadsRes, projectsRes, clientsRes, monthlyRevenueRes, recentPaymentsRes, deliveriesRes] = await Promise.all([
       // All pipeline booleans in a single payload
       supabase.from('leads').select('thumbnail_sample, before_after_made, followed_engaged, contacted_ig, contacted_email, seen, responded, closed'),
       // Projects + UNBILLED delivery count (retainer owed ignores billed) +
@@ -29,6 +33,9 @@ export function useDashboard() {
       // This-month revenue with client info so we can compute the top client
       supabase.from('revenue').select('amount, client_id, clients(client_name)').eq('status', 'paid').gte('payment_date', firstOfMonth),
       supabase.from('revenue').select('id, amount, status, payment_date, client_id, clients(client_name)').order('payment_date', { ascending: false }).limit(5),
+      // Recent delivered_at dates for the productivity KPI — 60-day window
+      // covers all displayed periods + their prior-period comparisons in one shot.
+      supabase.from('deliveries').select('delivered_at').gte('delivered_at', sixtyDaysAgo),
     ])
 
     if (leadsRes.error) throw leadsRes.error
@@ -138,6 +145,42 @@ export function useDashboard() {
       return true // packages + retainers always count as open
     }).length
 
+    // Delivery output stats — count deliveries in 3 windows + their prior
+    // equivalents for trend comparison. All derived from the single 60-day
+    // payload above.
+    const deliveryDates = (deliveriesRes.data ?? []).map(d => d.delivered_at as string)
+    function countInRange(fromDaysAgo: number, toDaysAgo: number): number {
+      // Inclusive bounds. Day offset 0 = today, 1 = yesterday, etc.
+      const today = new Date()
+      const from = new Date(today.getFullYear(), today.getMonth(), today.getDate() - fromDaysAgo)
+      const to   = new Date(today.getFullYear(), today.getMonth(), today.getDate() - toDaysAgo)
+      const fromStr = from.toISOString().split('T')[0]
+      const toStr   = to.toISOString().split('T')[0]
+      return deliveryDates.filter(d => d >= fromStr && d <= toStr).length
+    }
+    // Daily counts for the last 30 days, in chronological order.
+    // Used by the sparkline in DeliveriesKpiCard. Includes zero-days so the
+    // chart has consistent x-axis spacing even when no deliveries land on a day.
+    const today = new Date()
+    const dailyMap = new Map<string, number>()
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() - i)
+      dailyMap.set(d.toISOString().split('T')[0], 0)
+    }
+    for (const date of deliveryDates) {
+      if (dailyMap.has(date)) {
+        dailyMap.set(date, (dailyMap.get(date) ?? 0) + 1)
+      }
+    }
+    const daily = Array.from(dailyMap.entries()).map(([date, count]) => ({ date, count }))
+
+    const deliveryStats = {
+      yesterday: { count: countInRange(1, 1),   prior: countInRange(2, 2) },
+      week:      { count: countInRange(7, 1),   prior: countInRange(14, 8) },
+      month30:   { count: countInRange(30, 1),  prior: countInRange(60, 31) },
+      daily,
+    }
+
     const recentProjects = projects.slice(0, 5)
 
     return {
@@ -152,6 +195,7 @@ export function useDashboard() {
         unpaidGigs: unpaidGigs.length,
         gigsOwed,
         openProjects,
+        deliveryStats,
       },
       pipeline,
       recentProjects: recentProjects as unknown as DashboardData['recentProjects'],

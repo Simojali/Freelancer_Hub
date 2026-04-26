@@ -2,11 +2,12 @@ import { useState } from 'react'
 import { useDashboard } from '@/hooks/useDashboard'
 import { useNavigate } from 'react-router-dom'
 import KpiCard from './KpiCard'
+import DeliveriesKpiCard from './DeliveriesKpiCard'
 import QuickLogModal from './QuickLogModal'
 import LatestProjectsCard from './LatestProjectsCard'
 import RecentPaymentsCard from './RecentPaymentsCard'
 import { Button } from '@/components/ui/button'
-import { Users, UserCheck, DollarSign, FolderKanban, TrendingUp, Wallet, Package as PackageIcon } from 'lucide-react'
+import { Users, UserCheck, DollarSign, TrendingUp, Wallet, Package as PackageIcon } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
 import { useSettings } from '@/hooks/useSettings'
 
@@ -89,7 +90,7 @@ export default function DashboardView() {
             icon={Wallet}
             iconColor="text-amber-500"
           />
-          <KpiCard label="Open Projects" value={kpis.openProjects} icon={FolderKanban} iconColor="text-amber-500" />
+          <DeliveriesKpiCard stats={kpis.deliveryStats} />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
