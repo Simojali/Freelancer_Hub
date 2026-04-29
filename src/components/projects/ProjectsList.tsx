@@ -14,6 +14,9 @@ import ProjectFormModal, { type PaymentEntry } from './ProjectFormModal'
 import PackageDetailModal from './PackageDetailModal'
 import RetainerDetailModal from './RetainerDetailModal'
 import RevenueFormModal from '@/components/revenue/RevenueFormModal'
+import RevenueDeliveriesModal from '@/components/revenue/RevenueDeliveriesModal'
+import CycleRow from './CycleRow'
+import { useBilledCycles, type BilledCycle } from '@/hooks/useBilledCycles'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 import type { SortKey } from '@/App'
 
@@ -81,6 +84,7 @@ export default function ProjectsList({
 }: Props) {
   const { projects, isLoading, mutate, createProject, updateProject, deleteProject } = useProjects()
   const { createRevenue } = useRevenue()
+  const { cycles } = useBilledCycles()
   const { currency } = useSettings()
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
@@ -90,6 +94,8 @@ export default function ProjectsList({
   const [detailRetainer, setDetailRetainer] = useState<Project | null>(null)
   const [billPrefill, setBillPrefill] = useState<Partial<Revenue> | undefined>(undefined)
   const [revenueOpen, setRevenueOpen] = useState(false)
+  // Cycle being inspected — opens the existing RevenueDeliveriesModal
+  const [cycleInspect, setCycleInspect] = useState<BilledCycle | null>(null)
 
   function toggleCollapse(key: string) {
     setCollapsed(prev => {
@@ -173,6 +179,31 @@ export default function ProjectsList({
 
     return { filtered: sorted, retainers, packages, gigs, clientGroups }
   }, [projects, serviceFilter, search, showCompleted, activeTab, sortKey, groupBy, dateFrom, dateTo, overdueOnly, unpaidOnly])
+
+  // Billed retainer cycles surfaced under "Show Completed" — filtered by the
+  // same service / search / date controls, but skipped entirely when:
+  //  - showCompleted is off (cycles are completed work)
+  //  - tab is 'package' or 'gig' (cycles only exist for retainers)
+  //  - overdueOnly is on (overdue is a gig-only concept)
+  //  - unpaidOnly is on (cycles are by definition billed)
+  const visibleCycles = useMemo(() => {
+    if (!showCompleted) return []
+    if (overdueOnly || unpaidOnly) return []
+    if (activeTab === 'package' || activeTab === 'gig') return []
+    const q = search.trim().toLowerCase()
+    return cycles.filter(c => {
+      if (serviceFilter !== 'all' && c.service_type !== serviceFilter) return false
+      if (q) {
+        const nameHit = c.project_name.toLowerCase().includes(q)
+        const clientHit = (c.client_name ?? '').toLowerCase().includes(q)
+        if (!nameHit && !clientHit) return false
+      }
+      const date = (c.payment_date ?? '').slice(0, 10)
+      if (dateFrom && date && date < dateFrom) return false
+      if (dateTo && date && date > dateTo) return false
+      return true
+    })
+  }, [cycles, showCompleted, overdueOnly, unpaidOnly, activeTab, serviceFilter, search, dateFrom, dateTo])
 
   // Prune stale keys from the collapsed set whenever groups change.
   // Keeps the set from growing unbounded as clients come and go.
@@ -380,6 +411,21 @@ export default function ProjectsList({
               ))}
             </div>
           )}
+
+          {/* Billed retainer cycles — historical, surfaced under Show Completed */}
+          {visibleCycles.length > 0 && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 mb-1 mt-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-teal-200" />
+                <span className="text-xs font-medium text-zinc-500 uppercase tracking-wide">
+                  Billed Retainer Cycles — {visibleCycles.length}
+                </span>
+              </div>
+              {visibleCycles.map(c => (
+                <CycleRow key={c.id} cycle={c} onView={() => setCycleInspect(c)} />
+              ))}
+            </div>
+          )}
         </>
       )}
 
@@ -418,6 +464,25 @@ export default function ProjectsList({
         saveLabelOverride={billPrefill?.project_id
           ? `Confirm & bill ${formatCurrency(Number(billPrefill.amount ?? 0), currency)}`
           : undefined}
+      />
+
+      {/* Cycle drilldown — synthesise the minimal Revenue shape the modal expects */}
+      <RevenueDeliveriesModal
+        open={!!cycleInspect}
+        onClose={() => setCycleInspect(null)}
+        revenue={cycleInspect ? {
+          id: cycleInspect.revenue_id,
+          client_id: cycleInspect.client_id,
+          project_id: cycleInspect.project_id,
+          service_type: cycleInspect.service_type,
+          amount: cycleInspect.amount,
+          status: cycleInspect.status,
+          payment_date: cycleInspect.payment_date,
+          description: null,
+          created_at: cycleInspect.created_at,
+          updated_at: cycleInspect.created_at,
+          projects: { name: cycleInspect.project_name },
+        } : null}
       />
 
       <AlertDialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>

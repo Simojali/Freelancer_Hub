@@ -6,6 +6,7 @@ import { formatCurrency } from '@/lib/utils'
 import { useSettings } from '@/hooks/useSettings'
 import DeliveryLogForm from './DeliveryLogForm'
 import DeliveryList from './DeliveryList'
+import RetainerBillingHistory from './RetainerBillingHistory'
 
 interface Props {
   open: boolean
@@ -57,6 +58,11 @@ export default function RetainerDetailModal({ open, onClose, project, onDelivery
         >
           {unbilled.length === 0 ? 'Nothing to bill' : `Bill ${formatCurrency(owed, currency)}`}
         </Button>
+
+        {/* Previous billing cycles — auto-hides when there's no history */}
+        {project && (
+          <RetainerBillingHistory projectId={project.id} deliveries={deliveries} />
+        )}
       </DialogContent>
     </Dialog>
   )

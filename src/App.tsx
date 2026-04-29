@@ -10,6 +10,7 @@ import RevenueTable from '@/components/revenue/RevenueTable'
 import SettingsPage from '@/components/settings/SettingsPage'
 import { useServices } from '@/hooks/useServices'
 import { useProjects } from '@/hooks/useProjects'
+import { useBilledCycles } from '@/hooks/useBilledCycles'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -93,6 +94,7 @@ const SORT_OPTIONS: { value: SortKey; label: string }[] = [
 function ProjectsPage() {
   const { services } = useServices()
   const { projects } = useProjects()
+  const { cycles } = useBilledCycles()
   const [searchParams, setSearchParams] = useSearchParams()
 
   // Hydrate filters from URL (fall back to defaults)
@@ -181,7 +183,22 @@ function ProjectsPage() {
     if (unpaidOnly && !isGigUnpaid(p)) return false
     return true
   })
-  const completedCount = visibleForCounts.filter(p => p.project_type === 'gig' && p.status === 'done').length
+  const doneGigsCount = visibleForCounts.filter(p => p.project_type === 'gig' && p.status === 'done').length
+  // Cycles also count as "completed" — surface them under the same toggle so
+  // the user has one place to find historical work. Filter cycles by service +
+  // search + date so the badge only counts what the user would actually see.
+  const visibleCyclesForCount = cycles.filter(c => {
+    if (serviceFilter !== 'all' && c.service_type !== serviceFilter) return false
+    if (search) {
+      const q = search.toLowerCase()
+      if (!c.project_name.toLowerCase().includes(q) && !(c.client_name ?? '').toLowerCase().includes(q)) return false
+    }
+    const date = (c.payment_date ?? '').slice(0, 10)
+    if (dateFrom && date && date < dateFrom) return false
+    if (dateTo && date && date > dateTo) return false
+    return true
+  })
+  const completedCount = doneGigsCount + visibleCyclesForCount.length
   // Count unpaid gigs across the *unfiltered-by-unpaid* pool so the badge
   // still reflects real totals even while the user is toggling it on/off.
   const unpaidCount = projects.filter(isGigUnpaid).length
