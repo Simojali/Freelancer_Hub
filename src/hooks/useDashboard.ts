@@ -1,6 +1,7 @@
 import useSWR from 'swr'
 import type { DashboardData } from '@/lib/types'
 import { supabase } from '@/lib/supabase'
+import { formatLocalDate } from '@/lib/utils'
 
 /**
  * Consolidated dashboard fetch.
@@ -13,13 +14,12 @@ import { supabase } from '@/lib/supabase'
 export function useDashboard() {
   const { data, error, isLoading } = useSWR<DashboardData>('dashboard', async () => {
     const now = new Date()
-    const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]
+    const firstOfMonth = formatLocalDate(new Date(now.getFullYear(), now.getMonth(), 1))
     // 60 days back covers both the 30-day window and the prior 30-day window
     // (and trivially covers the smaller windows + their priors).
-    const sixtyDaysAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 60)
-      .toISOString().split('T')[0]
+    const sixtyDaysAgo = formatLocalDate(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 60))
 
-    const [leadsRes, projectsRes, clientsRes, monthlyRevenueRes, recentPaymentsRes, deliveriesRes] = await Promise.all([
+    const [leadsRes, projectsRes, clientsRes, monthlyRevenueRes, recentPaymentsRes, deliveriesRes, gigRevenueRes] = await Promise.all([
       // All pipeline booleans in a single payload
       supabase.from('leads').select('thumbnail_sample, before_after_made, followed_engaged, contacted_ig, contacted_email, seen, responded, closed'),
       // Projects + UNBILLED delivery count (retainer owed ignores billed) +
@@ -33,9 +33,18 @@ export function useDashboard() {
       // This-month revenue with client info so we can compute the top client
       supabase.from('revenue').select('amount, client_id, clients(client_name)').eq('status', 'paid').gte('payment_date', firstOfMonth),
       supabase.from('revenue').select('id, amount, status, payment_date, client_id, clients(client_name)').order('payment_date', { ascending: false }).limit(5),
-      // Recent delivered_at dates for the productivity KPI — 60-day window
-      // covers all displayed periods + their prior-period comparisons in one shot.
-      supabase.from('deliveries').select('delivered_at').gte('delivered_at', sixtyDaysAgo),
+      // Recent delivered_at dates + project_id for the productivity KPI and
+      // the "Today's Worth" earnings calculation — 60-day window covers all
+      // displayed periods + their prior-period comparisons in one shot.
+      supabase.from('deliveries').select('delivered_at, project_id').gte('delivered_at', sixtyDaysAgo),
+      // Paid gig revenue for the last 60 days — gigs have no delivery rows
+      // so their "value created" moment is the day they get paid. 60 days
+      // covers all earning windows + their priors.
+      supabase.from('revenue')
+        .select('amount, payment_date, project_id, projects!inner(project_type)')
+        .eq('status', 'paid')
+        .eq('projects.project_type', 'gig')
+        .gte('payment_date', sixtyDaysAgo),
     ])
 
     if (leadsRes.error) throw leadsRes.error
@@ -148,14 +157,15 @@ export function useDashboard() {
     // Delivery output stats — count deliveries in 3 windows + their prior
     // equivalents for trend comparison. All derived from the single 60-day
     // payload above.
-    const deliveryDates = (deliveriesRes.data ?? []).map(d => d.delivered_at as string)
+    const deliveryRows = (deliveriesRes.data ?? []) as { delivered_at: string; project_id: string }[]
+    const deliveryDates = deliveryRows.map(d => d.delivered_at)
     function countInRange(fromDaysAgo: number, toDaysAgo: number): number {
       // Inclusive bounds. Day offset 0 = today, 1 = yesterday, etc.
       const today = new Date()
       const from = new Date(today.getFullYear(), today.getMonth(), today.getDate() - fromDaysAgo)
       const to   = new Date(today.getFullYear(), today.getMonth(), today.getDate() - toDaysAgo)
-      const fromStr = from.toISOString().split('T')[0]
-      const toStr   = to.toISOString().split('T')[0]
+      const fromStr = formatLocalDate(from)
+      const toStr   = formatLocalDate(to)
       return deliveryDates.filter(d => d >= fromStr && d <= toStr).length
     }
     // Daily counts for the last 30 days, in chronological order.
@@ -165,7 +175,7 @@ export function useDashboard() {
     const dailyMap = new Map<string, number>()
     for (let i = 29; i >= 0; i--) {
       const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() - i)
-      dailyMap.set(d.toISOString().split('T')[0], 0)
+      dailyMap.set(formatLocalDate(d), 0)
     }
     for (const date of deliveryDates) {
       if (dailyMap.has(date)) {
@@ -175,10 +185,64 @@ export function useDashboard() {
     const daily = Array.from(dailyMap.entries()).map(([date, count]) => ({ date, count }))
 
     const deliveryStats = {
+      today:     { count: countInRange(0, 0),   prior: countInRange(1, 1) },
       yesterday: { count: countInRange(1, 1),   prior: countInRange(2, 2) },
       week:      { count: countInRange(7, 1),   prior: countInRange(14, 8) },
       month30:   { count: countInRange(30, 1),  prior: countInRange(60, 31) },
       daily,
+    }
+
+    // "Today's Worth" — value created on a given day. The realised value of
+    // each delivery depends on its parent project type:
+    //   - Retainer: unit_price (paid in arrears)
+    //   - Package:  price / total_units (amortised; payment status irrelevant)
+    //   - Gig:      no deliveries, so we credit the gig's revenue rows on
+    //               their payment_date instead
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const projectMap = new Map<string, any>(projects.map(p => [(p as any).id, p]))
+    function valuePerDelivery(projectId: string): number {
+      const p = projectMap.get(projectId)
+      if (!p) return 0
+      if (p.project_type === 'retainer') return Number(p.unit_price ?? 0)
+      if (p.project_type === 'package') {
+        const total = Number(p.total_units ?? 0)
+        const price = Number(p.price ?? 0)
+        return total > 0 ? price / total : 0
+      }
+      return 0
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const gigRevenueRows = (gigRevenueRes.data ?? []) as any[]
+    function earnedInRange(fromStr: string, toStr: string): number {
+      let sum = 0
+      for (const row of deliveryRows) {
+        if (row.delivered_at >= fromStr && row.delivered_at <= toStr) {
+          sum += valuePerDelivery(row.project_id)
+        }
+      }
+      for (const r of gigRevenueRows) {
+        const date = r.payment_date as string
+        if (date && date >= fromStr && date <= toStr) sum += Number(r.amount ?? 0)
+      }
+      return sum
+    }
+    function rangeBoundsFor(fromDaysAgo: number, toDaysAgo: number): [string, string] {
+      const today = new Date()
+      const from = new Date(today.getFullYear(), today.getMonth(), today.getDate() - fromDaysAgo)
+      const to   = new Date(today.getFullYear(), today.getMonth(), today.getDate() - toDaysAgo)
+      return [formatLocalDate(from), formatLocalDate(to)]
+    }
+    function earnedInWindow(fromDaysAgo: number, toDaysAgo: number): number {
+      const [from, to] = rangeBoundsFor(fromDaysAgo, toDaysAgo)
+      return earnedInRange(from, to)
+    }
+    // Mirrors the Deliveries card windows so the two cards line up: today vs
+    // yesterday; 7 days = yesterday + 6 prior; 30 days = yesterday + 29 prior.
+    const earnings = {
+      today:     { amount: earnedInWindow(0, 0),   prior: earnedInWindow(1, 1) },
+      yesterday: { amount: earnedInWindow(1, 1),   prior: earnedInWindow(2, 2) },
+      week:      { amount: earnedInWindow(7, 1),   prior: earnedInWindow(14, 8) },
+      month30:   { amount: earnedInWindow(30, 1),  prior: earnedInWindow(60, 31) },
     }
 
     const recentProjects = projects.slice(0, 5)
@@ -196,6 +260,7 @@ export function useDashboard() {
         gigsOwed,
         openProjects,
         deliveryStats,
+        earnings,
       },
       pipeline,
       recentProjects: recentProjects as unknown as DashboardData['recentProjects'],

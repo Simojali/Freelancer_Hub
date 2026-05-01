@@ -20,7 +20,9 @@ interface Props {
   saveLabelOverride?: string
 }
 
-const today = new Date().toISOString().split('T')[0]
+import { formatLocalDate } from '@/lib/utils'
+
+const today = formatLocalDate()
 
 const empty: Partial<Revenue> = {
   service_type: '',

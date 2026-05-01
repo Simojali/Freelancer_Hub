@@ -4,7 +4,7 @@ import { isGigUnpaid } from '@/lib/types'
 import { useProjects } from '@/hooks/useProjects'
 import { useRevenue } from '@/hooks/useRevenue'
 import { useSettings } from '@/hooks/useSettings'
-import { formatCurrency, cn } from '@/lib/utils'
+import { formatCurrency, cn, formatLocalDate } from '@/lib/utils'
 import { ChevronDown, FolderKanban } from 'lucide-react'
 import EmptyState from '@/components/shared/EmptyState'
 import PackageRow from './PackageRow'
@@ -120,7 +120,7 @@ export default function ProjectsList({
    */
   const { filtered, retainers, packages, gigs, clientGroups } = useMemo(() => {
     const q = search.trim().toLowerCase()
-    const today = new Date().toISOString().split('T')[0]
+    const today = formatLocalDate()
     // Single iteration: apply service, search, date, overdue, showCompleted, and tab at once.
     const filtered: Project[] = []
     for (const p of projects) {
@@ -278,7 +278,7 @@ export default function ProjectsList({
       amount: owed,
       description: `${count} deliver${count !== 1 ? 'ies' : 'y'} × ${formatCurrency(project.unit_price ?? 0, currency)}`,
       status: 'pending',
-      payment_date: new Date().toISOString().split('T')[0],
+      payment_date: formatLocalDate(),
     })
     setRevenueOpen(true)
   }

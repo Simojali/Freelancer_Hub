@@ -131,11 +131,21 @@ export interface DashboardData {
     openProjects: number
     /** Delivery counts for 3 trailing windows + their prior-period comparisons */
     deliveryStats: {
+      today:     { count: number; prior: number }
       yesterday: { count: number; prior: number }
       week:      { count: number; prior: number }
       month30:   { count: number; prior: number }
       /** Daily counts for the last 30 days, used by the sparkline */
       daily:     { date: string; count: number }[]
+    }
+    /** Realised value created across 4 windows. Retainer + package deliveries
+     *  contribute their per-unit rate; paid gig revenue contributes its amount
+     *  on its payment_date. Each entry pairs with its prior-period comparison. */
+    earnings: {
+      today:     { amount: number; prior: number }
+      yesterday: { amount: number; prior: number }
+      week:      { amount: number; prior: number }
+      month30:   { amount: number; prior: number }
     }
   }
   pipeline: {

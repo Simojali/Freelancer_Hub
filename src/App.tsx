@@ -14,7 +14,7 @@ import { useBilledCycles } from '@/hooks/useBilledCycles'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { cn } from '@/lib/utils'
+import { cn, formatLocalDate } from '@/lib/utils'
 import { Plus, Layers, Users, CheckCheck, Search, ArrowUpDown, AlertTriangle, Wallet } from 'lucide-react'
 import DateRangePicker from '@/components/shared/DateRangePicker'
 import type { Project } from '@/lib/types'
@@ -28,8 +28,8 @@ export function rangeBounds(preset: DateRange, customFrom?: string, customTo?: s
   if (preset === 'all') return {}
   if (preset === 'custom') return { from: customFrom || undefined, to: customTo || undefined }
   const now = new Date()
-  const today = now.toISOString().split('T')[0]
-  const fmt = (d: Date) => d.toISOString().split('T')[0]
+  const today = formatLocalDate(now)
+  const fmt = formatLocalDate
   switch (preset) {
     case 'today': return { from: today, to: today }
     case 'week': {
@@ -167,7 +167,7 @@ function ProjectsPage() {
   // Tab counts + completed count derived directly from the hook data — no
   // child-to-parent callback plumbing needed. Respects current search +
   // service + date filters so counts stay meaningful.
-  const todayStr = new Date().toISOString().split('T')[0]
+  const todayStr = formatLocalDate()
   const visibleForCounts = projects.filter(p => {
     if (serviceFilter !== 'all' && p.service_type !== serviceFilter) return false
     if (search) {

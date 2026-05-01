@@ -8,7 +8,8 @@ interface Props {
   value: ReactNode
   icon: LucideIcon
   iconColor?: string
-  sub?: string
+  /** Accepts a ReactNode so callers can render colored trend arrows / pills. */
+  sub?: ReactNode
   /** When provided, the whole card becomes clickable + keyboard-focusable. */
   onClick?: () => void
 }

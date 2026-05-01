@@ -3,6 +3,7 @@ import { Plus, Link as LinkIcon, AlertTriangle } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { useDeliveries } from '@/hooks/useDeliveries'
+import { formatLocalDate } from '@/lib/utils'
 
 interface Props {
   projectId: string | undefined
@@ -15,7 +16,7 @@ interface Props {
   hideQuantity?: boolean
 }
 
-const todayStr = () => new Date().toISOString().split('T')[0]
+const todayStr = () => formatLocalDate()
 
 // Warn when a date is more than 30 days old or in the future — helps catch
 // typos like "2025" (next year) or "2020" (copy-pasted).

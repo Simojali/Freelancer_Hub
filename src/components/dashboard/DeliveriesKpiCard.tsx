@@ -5,9 +5,10 @@ import { Package as PackageIcon, ArrowUp, ArrowDown, Minus } from 'lucide-react'
 import { cn, formatDate } from '@/lib/utils'
 import type { DashboardData } from '@/lib/types'
 
-type Period = 'yesterday' | 'week' | 'month30'
+type Period = 'today' | 'yesterday' | 'week' | 'month30'
 
 const PERIODS: { key: Period; label: string }[] = [
+  { key: 'today',     label: 'Today' },
   { key: 'yesterday', label: 'Yesterday' },
   { key: 'week',      label: '7 days' },
   { key: 'month30',   label: '30 days' },
@@ -19,10 +20,10 @@ interface Props {
 
 /**
  * Output-focused KPI: how many deliveries shipped in the selected window,
- * plus a trend comparison to the prior equivalent period. Three windows
- * (yesterday, last 7 days, last 30 days) selectable via a tiny segmented
- * control inside the card. Not clickable — it's an inspection card, not
- * a navigation surface.
+ * plus a trend comparison to the prior equivalent period. Four windows
+ * (today, yesterday, last 7 days, last 30 days) selectable via a tiny
+ * segmented control inside the card. Not clickable — it's an inspection
+ * card, not a navigation surface.
  */
 export default function DeliveriesKpiCard({ stats }: Props) {
   const [period, setPeriod] = useState<Period>('week')

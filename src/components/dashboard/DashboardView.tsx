@@ -3,11 +3,12 @@ import { useDashboard } from '@/hooks/useDashboard'
 import { useNavigate } from 'react-router-dom'
 import KpiCard from './KpiCard'
 import DeliveriesKpiCard from './DeliveriesKpiCard'
+import EarningsKpiCard from './EarningsKpiCard'
 import QuickLogModal from './QuickLogModal'
 import LatestProjectsCard from './LatestProjectsCard'
 import RecentPaymentsCard from './RecentPaymentsCard'
 import { Button } from '@/components/ui/button'
-import { Users, UserCheck, DollarSign, TrendingUp, Wallet, Package as PackageIcon } from 'lucide-react'
+import { UserCheck, DollarSign, Wallet, Package as PackageIcon } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
 import { useSettings } from '@/hooks/useSettings'
 
@@ -44,27 +45,14 @@ export default function DashboardView() {
     )
   }
 
-  const { kpis, pipeline, recentProjects, recentPayments } = data
+  const { kpis, recentProjects, recentPayments } = data
 
   return (
     <div>
       {header}
       <div className="space-y-6">
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-          <KpiCard
-            label="Prospects"
-            value={kpis.totalLeads - pipeline.sample}
-            sub={`${pipeline.sample} in outreach`}
-            icon={Users}
-            iconColor="text-zinc-400"
-          />
-          <KpiCard
-            label="Close Rate"
-            value={pipeline.sample > 0 ? `${Math.round((pipeline.closed / pipeline.sample) * 100)}%` : '0%'}
-            sub={`${pipeline.closed} closed`}
-            icon={TrendingUp}
-            iconColor="text-emerald-500"
-          />
+          {/* Prospects + Close Rate moved to the Leads page where they're contextually owned */}
           <KpiCard
             label="Active Clients"
             value={
@@ -91,6 +79,8 @@ export default function DashboardView() {
             iconColor="text-amber-500"
           />
           <DeliveriesKpiCard stats={kpis.deliveryStats} />
+          {/* Earned — same period toggle as Deliveries, money side of the same coin */}
+          <EarningsKpiCard earnings={kpis.earnings} currency={currency} />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -115,3 +105,4 @@ export default function DashboardView() {
     </div>
   )
 }
+

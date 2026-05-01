@@ -20,7 +20,9 @@ interface Props {
   project?: Project | null
 }
 
-const today = new Date().toISOString().split('T')[0]
+import { formatLocalDate } from '@/lib/utils'
+
+const today = formatLocalDate()
 
 const emptyGig: Partial<Project> = {
   name: '',

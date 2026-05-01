@@ -18,7 +18,7 @@ import PaymentStatusBadge from '@/components/revenue/PaymentStatusBadge'
 import ClientFormModal from './ClientFormModal'
 import KpiCard from '@/components/dashboard/KpiCard'
 import EmptyState from '@/components/shared/EmptyState'
-import { formatCurrency, formatDate, cn } from '@/lib/utils'
+import { formatCurrency, formatDate, cn, formatLocalDate } from '@/lib/utils'
 import { useSettings } from '@/hooks/useSettings'
 import { isGigUnpaid } from '@/lib/types'
 import type { Project, Client, Revenue, PaymentStatus } from '@/lib/types'
@@ -113,7 +113,7 @@ export default function ClientProfilePage() {
       amount: owed,
       description: `${count} deliver${count !== 1 ? 'ies' : 'y'} × ${formatCurrency(project.unit_price ?? 0, currency)}`,
       status: 'pending',
-      payment_date: new Date().toISOString().split('T')[0],
+      payment_date: formatLocalDate(),
     })
     setEditRevenue(null)
     setIsBillFlow(true)

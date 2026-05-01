@@ -5,13 +5,14 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Pencil, Trash2, Plus, ExternalLink, Users } from 'lucide-react'
+import { Pencil, Trash2, Plus, ExternalLink, Users, TrendingUp } from 'lucide-react'
 import LeadFormModal from './LeadFormModal'
 import LeadDeleteDialog from './LeadDeleteDialog'
 import ServiceBadge from '@/components/shared/ServiceBadge'
 import { useServices } from '@/hooks/useServices'
 import EmptyState from '@/components/shared/EmptyState'
 import PipelineFunnel from '@/components/shared/PipelineFunnel'
+import KpiCard from '@/components/dashboard/KpiCard'
 
 // Pipeline steps shown in the Outreach section (sample already done)
 const OUTREACH_COLS: { field: keyof Lead; label: string }[] = [
@@ -92,6 +93,26 @@ export default function LeadsTable() {
 
   return (
     <div className="space-y-6">
+      {/* KPI cards — Prospects (untouched leads) + Close Rate from outreach */}
+      {!isLoading && leads.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <KpiCard
+            label="Prospects"
+            value={prospects.length}
+            sub={`${outreach.length} in outreach`}
+            icon={Users}
+            iconColor="text-zinc-400"
+          />
+          <KpiCard
+            label="Close Rate"
+            value={pipeline.sample > 0 ? `${Math.round((pipeline.closed / pipeline.sample) * 100)}%` : '0%'}
+            sub={`${pipeline.closed} closed of ${pipeline.sample} in outreach`}
+            icon={TrendingUp}
+            iconColor="text-emerald-500"
+          />
+        </div>
+      )}
+
       {/* Filters */}
       <div className="flex items-center gap-3">
         <Input
