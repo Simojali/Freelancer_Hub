@@ -28,7 +28,11 @@ export function useRevenue() {
     body: Partial<Revenue>,
     opts?: { billRetainer?: boolean }
   ): Promise<boolean> {
-    const { projects: _p, clients: _c, ...insertBody } = body as Revenue
+    const {
+      projects: _p, clients: _c,
+      linked_deliveries: _ld, linked_delivery_count: _ldc,
+      ...insertBody
+    } = body as Revenue & { linked_deliveries?: unknown; linked_delivery_count?: number }
     const res = await runMutation('Log payment', () =>
       supabase.from('revenue').insert(insertBody).select('id').single()
     )
@@ -50,7 +54,16 @@ export function useRevenue() {
   }
 
   async function updateRevenue(id: string, body: Partial<Revenue>): Promise<boolean> {
-    const { projects: _p, clients: _c, id: _id, created_at: _ca, updated_at: _ua, ...updateBody } = body as Revenue
+    // Strip every non-column field before PATCHing — PostgREST 400s on any
+    // unknown column. linked_deliveries is the deliveries(count) embed alias
+    // and linked_delivery_count is the derived value we add in the mapper.
+    const {
+      projects: _p, clients: _c,
+      id: _id, created_at: _ca, updated_at: _ua,
+      linked_deliveries: _ld, linked_delivery_count: _ldc,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ...updateBody
+    } = body as Revenue & { linked_deliveries?: unknown; linked_delivery_count?: number }
     const prev = data
     mutate(rows => rows?.map(r => r.id === id ? { ...r, ...body } : r), false)
     const res = await runMutation('Update payment', () =>

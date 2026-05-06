@@ -19,13 +19,13 @@ export function useDashboard() {
     // (and trivially covers the smaller windows + their priors).
     const sixtyDaysAgo = formatLocalDate(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 60))
 
-    const [leadsRes, projectsRes, clientsRes, monthlyRevenueRes, recentPaymentsRes, deliveriesRes, gigRevenueRes] = await Promise.all([
+    const [leadsRes, projectsRes, clientsRes, monthlyRevenueRes, recentPaymentsRes, deliveriesRes] = await Promise.all([
       // All pipeline booleans in a single payload
       supabase.from('leads').select('thumbnail_sample, before_after_made, followed_engaged, contacted_ig, contacted_email, seen, responded, closed'),
       // Projects + UNBILLED delivery count (retainer owed ignores billed) +
       // paid revenue rows (needed to derive unpaid gig totals)
       supabase.from('projects')
-        .select('id, client_id, name, project_type, status, price, unit_price, total_units, created_at, clients(client_name), unbilled:deliveries(count), all_deliveries:deliveries(count), paid_revenue:revenue(amount, status)')
+        .select('id, client_id, name, project_type, status, price, unit_price, total_units, created_at, done_at, clients(client_name), unbilled:deliveries(count), all_deliveries:deliveries(count), paid_revenue:revenue(amount, status)')
         .eq('unbilled.billed', false)
         .eq('paid_revenue.status', 'paid')
         .order('created_at', { ascending: false }),
@@ -37,14 +37,6 @@ export function useDashboard() {
       // the "Today's Worth" earnings calculation — 60-day window covers all
       // displayed periods + their prior-period comparisons in one shot.
       supabase.from('deliveries').select('delivered_at, project_id').gte('delivered_at', sixtyDaysAgo),
-      // Paid gig revenue for the last 60 days — gigs have no delivery rows
-      // so their "value created" moment is the day they get paid. 60 days
-      // covers all earning windows + their priors.
-      supabase.from('revenue')
-        .select('amount, payment_date, project_id, projects!inner(project_type)')
-        .eq('status', 'paid')
-        .eq('projects.project_type', 'gig')
-        .gte('payment_date', sixtyDaysAgo),
     ])
 
     if (leadsRes.error) throw leadsRes.error
@@ -159,6 +151,25 @@ export function useDashboard() {
     // payload above.
     const deliveryRows = (deliveriesRes.data ?? []) as { delivered_at: string; project_id: string }[]
     const deliveryDates = deliveryRows.map(d => d.delivered_at)
+    // Gigs have no delivery rows, so we synthesise one event per done gig
+    // anchored to its done_at timestamp (set by a Postgres trigger when status
+    // flips to 'done'). The Earned card uses the same anchor with the gig's
+    // price for its money contribution. Payment status is irrelevant — work
+    // delivered today is delivered today, whether the client has paid or not.
+    const gigEvents: { date: string; price: number }[] = []
+    for (const p of projects) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const r = p as any
+      if (r.project_type !== 'gig') continue
+      if (r.status !== 'done') continue
+      if (!r.done_at) continue
+      gigEvents.push({
+        date: formatLocalDate(new Date(r.done_at)),
+        price: Number(r.price ?? 0),
+      })
+    }
+    const gigEventDates = gigEvents.map(e => e.date)
+
     function countInRange(fromDaysAgo: number, toDaysAgo: number): number {
       // Inclusive bounds. Day offset 0 = today, 1 = yesterday, etc.
       const today = new Date()
@@ -167,6 +178,7 @@ export function useDashboard() {
       const fromStr = formatLocalDate(from)
       const toStr   = formatLocalDate(to)
       return deliveryDates.filter(d => d >= fromStr && d <= toStr).length
+           + gigEventDates.filter(d => d >= fromStr && d <= toStr).length
     }
     // Daily counts for the last 30 days, in chronological order.
     // Used by the sparkline in DeliveriesKpiCard. Includes zero-days so the
@@ -178,6 +190,11 @@ export function useDashboard() {
       dailyMap.set(formatLocalDate(d), 0)
     }
     for (const date of deliveryDates) {
+      if (dailyMap.has(date)) {
+        dailyMap.set(date, (dailyMap.get(date) ?? 0) + 1)
+      }
+    }
+    for (const date of gigEventDates) {
       if (dailyMap.has(date)) {
         dailyMap.set(date, (dailyMap.get(date) ?? 0) + 1)
       }
@@ -211,8 +228,6 @@ export function useDashboard() {
       }
       return 0
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const gigRevenueRows = (gigRevenueRes.data ?? []) as any[]
     function earnedInRange(fromStr: string, toStr: string): number {
       let sum = 0
       for (const row of deliveryRows) {
@@ -220,9 +235,8 @@ export function useDashboard() {
           sum += valuePerDelivery(row.project_id)
         }
       }
-      for (const r of gigRevenueRows) {
-        const date = r.payment_date as string
-        if (date && date >= fromStr && date <= toStr) sum += Number(r.amount ?? 0)
+      for (const ev of gigEvents) {
+        if (ev.date >= fromStr && ev.date <= toStr) sum += ev.price
       }
       return sum
     }
