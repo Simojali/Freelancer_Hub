@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import { cn } from '@/lib/utils'
-import { LayoutDashboard, Users, UserCheck, FolderKanban, DollarSign, Settings } from 'lucide-react'
+import { LayoutDashboard, Users, UserCheck, FolderKanban, DollarSign, BarChart3, Settings } from 'lucide-react'
 
 const nav = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -8,6 +8,7 @@ const nav = [
   { href: '/clients', label: 'Clients', icon: UserCheck },
   { href: '/projects', label: 'Projects', icon: FolderKanban },
   { href: '/revenue', label: 'Revenue', icon: DollarSign },
+  { href: '/analytics', label: 'Analytics', icon: BarChart3 },
 ]
 
 export default function Sidebar() {

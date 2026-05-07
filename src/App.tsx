@@ -8,6 +8,7 @@ import ClientProfilePage from '@/components/clients/ClientProfilePage'
 import ProjectsList, { type TabType, type GroupBy } from '@/components/projects/ProjectsList'
 import RevenueTable from '@/components/revenue/RevenueTable'
 import SettingsPage from '@/components/settings/SettingsPage'
+import AnalyticsPage from '@/components/analytics/AnalyticsPage'
 import { useServices } from '@/hooks/useServices'
 import { useProjects } from '@/hooks/useProjects'
 import { useBilledCycles } from '@/hooks/useBilledCycles'
@@ -390,6 +391,7 @@ export default function App() {
         <Route path="/clients/:id" element={<ClientProfilePage />} />
         <Route path="/projects" element={<ProjectsPage />} />
         <Route path="/revenue" element={<RevenuePage />} />
+        <Route path="/analytics" element={<AnalyticsPage />} />
         <Route path="/settings" element={<SettingsPageWrapper />} />
       </Routes>
     </AppShell>
