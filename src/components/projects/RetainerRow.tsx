@@ -23,14 +23,14 @@ export default function RetainerRow({ project, onView, onBill, onEdit, onDelete,
   const owed = delivered * unitPrice
 
   return (
-    <div className="bg-white border border-zinc-200 rounded-lg hover:border-zinc-300 transition-colors overflow-hidden">
+    <div className="bg-card border border-border rounded-lg hover:border-border transition-colors overflow-hidden">
       <div className="flex items-center gap-4 px-4 py-3">
         {/* Expand chevron */}
         {onToggleExpand && (
           <button
             type="button"
             onClick={onToggleExpand}
-            className="shrink-0 p-1 -m-1 text-zinc-400 hover:text-zinc-700 rounded"
+            className="shrink-0 p-1 -m-1 text-muted-foreground hover:text-foreground rounded"
             aria-label={isExpanded ? 'Collapse deliveries' : 'Expand deliveries'}
           >
             <ChevronDown className={cn('w-4 h-4 transition-transform', isExpanded && 'rotate-180')} />
@@ -42,9 +42,9 @@ export default function RetainerRow({ project, onView, onBill, onEdit, onDelete,
 
         {/* Name + client */}
         <div className="flex-1 min-w-0">
-          <div className="font-medium text-zinc-900 text-sm truncate">{project.name}</div>
+          <div className="font-medium text-foreground text-sm truncate">{project.name}</div>
           {project.clients?.client_name && (
-            <div className="text-xs text-zinc-400 mt-0.5">{project.clients.client_name}</div>
+            <div className="text-xs text-muted-foreground mt-0.5">{project.clients.client_name}</div>
           )}
         </div>
 
@@ -53,12 +53,12 @@ export default function RetainerRow({ project, onView, onBill, onEdit, onDelete,
 
         {/* Unit price */}
         {unitPrice > 0 && (
-          <span className="text-sm text-zinc-500 shrink-0">{formatCurrency(unitPrice, currency)} / unit</span>
+          <span className="text-sm text-muted-foreground shrink-0">{formatCurrency(unitPrice, currency)} / unit</span>
         )}
 
         {/* Unbilled deliveries & owed */}
         <div className="shrink-0 flex items-center gap-2">
-          <span className={`text-sm font-semibold ${owed > 0 ? 'text-teal-600' : 'text-zinc-400'}`}>
+          <span className={`text-sm font-semibold ${owed > 0 ? 'text-teal-600' : 'text-muted-foreground'}`}>
             {delivered} unbilled → {formatCurrency(owed, currency)} owed
           </span>
           <button
@@ -73,7 +73,7 @@ export default function RetainerRow({ project, onView, onBill, onEdit, onDelete,
 
         {/* Actions */}
         <div className="flex gap-1 shrink-0">
-          <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-zinc-500 hover:text-zinc-900" onClick={onView}>
+          <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground" onClick={onView}>
             <Eye className="w-3.5 h-3.5" />
           </Button>
           <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={onEdit}>
@@ -87,7 +87,7 @@ export default function RetainerRow({ project, onView, onBill, onEdit, onDelete,
 
       {/* Inline peek */}
       {isExpanded && (
-        <div className="border-t border-zinc-100 bg-zinc-50/50 px-4 py-3">
+        <div className="border-t border-border bg-muted/40/50 px-4 py-3">
           <DeliveryPeek projectId={project.id} onViewAll={onView} />
         </div>
       )}

@@ -68,39 +68,39 @@ export default function RetainerBillingHistory({ projectId, deliveries }: Props)
   }
 
   return (
-    <div className="mt-4 pt-4 border-t border-zinc-100 space-y-2">
-      <div className="text-xs font-medium text-zinc-500 uppercase tracking-wide">
+    <div className="mt-4 pt-4 border-t border-border space-y-2">
+      <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
         Billing history — {cycles.length} cycle{cycles.length !== 1 ? 's' : ''}
       </div>
       <div className="space-y-1.5">
         {cycles.map(({ revenue: rev, deliveries: cycleDeliveries }) => {
           const isExpanded = expanded.has(rev.id)
           return (
-            <div key={rev.id} className="border border-zinc-200 rounded-md overflow-hidden">
+            <div key={rev.id} className="border border-border rounded-md overflow-hidden">
               <button
                 type="button"
                 onClick={() => toggle(rev.id)}
-                className="w-full flex items-center justify-between px-3 py-2 hover:bg-zinc-50 transition-colors text-left"
+                className="w-full flex items-center justify-between px-3 py-2 hover:bg-muted/40 transition-colors text-left"
               >
                 <div className="flex items-center gap-2 min-w-0">
-                  <ChevronDown className={cn('w-3.5 h-3.5 text-zinc-400 transition-transform shrink-0', isExpanded && 'rotate-180')} />
-                  <span className="text-xs text-zinc-500">{formatDate(rev.payment_date ?? rev.created_at)}</span>
-                  <span className="text-xs text-zinc-300">·</span>
-                  <span className="text-xs text-zinc-500">
+                  <ChevronDown className={cn('w-3.5 h-3.5 text-muted-foreground transition-transform shrink-0', isExpanded && 'rotate-180')} />
+                  <span className="text-xs text-muted-foreground">{formatDate(rev.payment_date ?? rev.created_at)}</span>
+                  <span className="text-xs text-muted-foreground/70">·</span>
+                  <span className="text-xs text-muted-foreground">
                     {cycleDeliveries.length} deliver{cycleDeliveries.length !== 1 ? 'ies' : 'y'}
                   </span>
                 </div>
-                <span className="text-sm font-semibold text-zinc-700 shrink-0">
+                <span className="text-sm font-semibold text-foreground shrink-0">
                   {formatCurrency(Number(rev.amount), currency)}
                 </span>
               </button>
               {isExpanded && (
-                <div className="border-t border-zinc-100 bg-zinc-50/50 px-3 py-2 space-y-1">
+                <div className="border-t border-border bg-muted/40/50 px-3 py-2 space-y-1">
                   {cycleDeliveries.map(d => (
                     <div key={d.id} className="flex items-start gap-2 text-xs">
-                      <span className="text-zinc-400 shrink-0 w-20">{formatDate(d.delivered_at)}</span>
-                      <span className="text-zinc-700 break-words">
-                        {d.description ?? <span className="italic text-zinc-400">No description</span>}
+                      <span className="text-muted-foreground shrink-0 w-20">{formatDate(d.delivered_at)}</span>
+                      <span className="text-foreground break-words">
+                        {d.description ?? <span className="italic text-muted-foreground">No description</span>}
                       </span>
                     </div>
                   ))}

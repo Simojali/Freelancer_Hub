@@ -32,18 +32,18 @@ export default function ClientCard({ client, stats, onEdit, onDelete, onView }: 
       tabIndex={0}
       onClick={onView}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onView() } }}
-      className="border border-zinc-200 shadow-none hover:border-zinc-300 hover:shadow-sm transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-zinc-300 focus:ring-offset-1"
+      className="border border-border shadow-none hover:border-border hover:shadow-sm transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-border focus:ring-offset-1"
     >
       <CardContent className="p-5">
         {/* Header row */}
         <div className="flex items-start justify-between mb-3 gap-2">
           <div className="min-w-0">
-            <div className="font-semibold text-zinc-900 truncate">{client.client_name}</div>
+            <div className="font-semibold text-foreground truncate">{client.client_name}</div>
             {client.email && (
               <a
                 href={`mailto:${client.email}`}
                 onClick={stop}
-                className="inline-flex items-center gap-1 text-xs text-zinc-400 hover:text-zinc-700 mt-0.5 truncate"
+                className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mt-0.5 truncate"
               >
                 <Mail className="w-3 h-3 shrink-0" />
                 <span className="truncate">{client.email}</span>
@@ -62,7 +62,7 @@ export default function ClientCard({ client, stats, onEdit, onDelete, onView }: 
 
         {/* Stats grid */}
         {stats && (
-          <div className="grid grid-cols-3 gap-2 py-2 border-y border-zinc-100 mb-3">
+          <div className="grid grid-cols-3 gap-2 py-2 border-y border-border mb-3">
             <Stat label="Projects" value={`${stats.activeProjects}/${stats.totalProjects}`} hint="active / total" />
             <Stat label="Paid" value={formatCurrency(stats.totalPaid, currency)} tone="positive" />
             <Stat label="Owed" value={formatCurrency(stats.owed, currency)} tone={stats.owed > 0 ? 'warning' : 'muted'} />
@@ -70,20 +70,20 @@ export default function ClientCard({ client, stats, onEdit, onDelete, onView }: 
         )}
 
         {/* Channels + notes */}
-        <div className="flex items-center gap-3 text-xs text-zinc-400" onClick={stop}>
+        <div className="flex items-center gap-3 text-xs text-muted-foreground" onClick={stop}>
           {client.channel_link && (
-            <a href={client.channel_link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-zinc-600 transition-colors">
+            <a href={client.channel_link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-muted-foreground transition-colors">
               Channel 1 <ExternalLink className="w-3 h-3" />
             </a>
           )}
           {client.channel_link_2 && (
-            <a href={client.channel_link_2} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-zinc-600 transition-colors">
+            <a href={client.channel_link_2} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-muted-foreground transition-colors">
               Channel 2 <ExternalLink className="w-3 h-3" />
             </a>
           )}
         </div>
         {client.notes && (
-          <div className="mt-2 text-xs text-zinc-400 italic line-clamp-2">{client.notes}</div>
+          <div className="mt-2 text-xs text-muted-foreground italic line-clamp-2">{client.notes}</div>
         )}
       </CardContent>
     </Card>
@@ -94,11 +94,11 @@ function Stat({ label, value, hint, tone = 'default' }: { label: string; value: 
   const valueClass =
     tone === 'positive' ? 'text-emerald-600' :
     tone === 'warning'  ? 'text-amber-600'   :
-    tone === 'muted'    ? 'text-zinc-400'    :
-                          'text-zinc-900'
+    tone === 'muted'    ? 'text-muted-foreground'    :
+                          'text-foreground'
   return (
     <div className="min-w-0">
-      <div className="text-[10px] font-medium text-zinc-400 uppercase tracking-wide">{label}</div>
+      <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">{label}</div>
       <div className={`text-sm font-semibold truncate ${valueClass}`} title={hint ?? value}>{value}</div>
     </div>
   )

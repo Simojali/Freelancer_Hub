@@ -32,8 +32,8 @@ export default function RetainerDetailModal({ open, onClose, project, onDelivery
         </DialogHeader>
 
         {/* Owed display — only counts unbilled deliveries */}
-        <div className="flex items-center justify-between bg-zinc-50 rounded-lg px-4 py-3 mt-2">
-          <span className="text-sm text-zinc-500">
+        <div className="flex items-center justify-between bg-muted/40 rounded-lg px-4 py-3 mt-2">
+          <span className="text-sm text-muted-foreground">
             {unbilled.length} unbilled × {formatCurrency(unitPrice, currency)}
           </span>
           <span className="text-xl font-bold text-teal-600">{formatCurrency(owed, currency)} owed</span>

@@ -34,7 +34,7 @@ export default function DeliveriesKpiCard({ stats }: Props) {
   // period was zero we can't compute a percentage, so just show "vs 0".
   let trendNode: React.ReactNode
   if (prior === 0 && count === 0) {
-    trendNode = <span className="text-zinc-400">no deliveries</span>
+    trendNode = <span className="text-muted-foreground">no deliveries</span>
   } else if (prior === 0) {
     trendNode = <span className="text-emerald-600 inline-flex items-center gap-0.5"><ArrowUp className="w-3 h-3" />new</span>
   } else {
@@ -44,18 +44,18 @@ export default function DeliveriesKpiCard({ stats }: Props) {
     } else if (pct < 0) {
       trendNode = <span className="text-red-500 inline-flex items-center gap-0.5"><ArrowDown className="w-3 h-3" />{Math.abs(pct)}%</span>
     } else {
-      trendNode = <span className="text-zinc-400 inline-flex items-center gap-0.5"><Minus className="w-3 h-3" />flat</span>
+      trendNode = <span className="text-muted-foreground inline-flex items-center gap-0.5"><Minus className="w-3 h-3" />flat</span>
     }
   }
 
   return (
-    <Card className="border border-zinc-200 shadow-none">
+    <Card className="border border-border shadow-none">
       <CardContent className="p-5">
         <div className="flex items-center justify-between gap-2 mb-3">
           <div className="flex items-center gap-2 min-w-0">
-            <span className="text-xs font-medium text-zinc-500 uppercase tracking-wide shrink-0">Deliveries</span>
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide shrink-0">Deliveries</span>
             {/* Period selector inline with the title */}
-            <div className="flex items-center rounded-md border border-zinc-200 overflow-hidden text-[10px]">
+            <div className="flex items-center rounded-md border border-border overflow-hidden text-[10px]">
               {PERIODS.map(p => (
                 <button
                   key={p.key}
@@ -64,8 +64,8 @@ export default function DeliveriesKpiCard({ stats }: Props) {
                   className={cn(
                     'px-1.5 py-0.5 transition-colors whitespace-nowrap',
                     period === p.key
-                      ? 'bg-zinc-900 text-white'
-                      : 'text-zinc-500 hover:bg-zinc-50',
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:bg-muted/40',
                   )}
                 >
                   {p.label}
@@ -73,11 +73,11 @@ export default function DeliveriesKpiCard({ stats }: Props) {
               ))}
             </div>
           </div>
-          <PackageIcon className="w-4 h-4 text-zinc-400 shrink-0" />
+          <PackageIcon className="w-4 h-4 text-muted-foreground shrink-0" />
         </div>
 
         <div className="flex items-end justify-between gap-3">
-          <div className="text-2xl font-semibold text-zinc-900 leading-none">{count}</div>
+          <div className="text-2xl font-semibold text-foreground leading-none">{count}</div>
 
           {/* Sparkline — last 30 days of daily counts. Static window
               regardless of selected period: gives stable trend context. */}
@@ -120,7 +120,7 @@ export default function DeliveriesKpiCard({ stats }: Props) {
             </div>
           )}
         </div>
-        <div className="text-xs text-zinc-400 mt-1 truncate">
+        <div className="text-xs text-muted-foreground mt-1 truncate">
           {prior} prior · {trendNode}
         </div>
       </CardContent>

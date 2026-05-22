@@ -31,22 +31,22 @@ export default function AnalyticsPeriodPicker({ period, onChange }: Props) {
   return (
     <PopoverPrimitive.Root open={open} onOpenChange={setOpen}>
       <PopoverPrimitive.Trigger
-        className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-zinc-200 text-xs text-zinc-700 hover:bg-zinc-50 transition-colors"
+        className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-border text-xs text-foreground hover:bg-muted/40 transition-colors"
       >
-        <Calendar className="w-3.5 h-3.5 text-zinc-400" />
+        <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
         <span>{current?.label ?? 'Select period'}</span>
       </PopoverPrimitive.Trigger>
 
       <PopoverPrimitive.Portal>
         <PopoverPrimitive.Positioner sideOffset={6} align="end" className="z-50">
-          <PopoverPrimitive.Popup className="bg-white border border-zinc-200 rounded-lg shadow-lg w-80 p-3 outline-none">
+          <PopoverPrimitive.Popup className="bg-card border border-border rounded-lg shadow-lg w-80 p-3 outline-none">
             <Section title="Calendar">
               <Grid items={calendar} active={period} onPick={pick} />
             </Section>
-            <Section title="Rolling" className="mt-3 pt-3 border-t border-zinc-100">
+            <Section title="Rolling" className="mt-3 pt-3 border-t border-border">
               <Grid items={rolling} active={period} onPick={pick} />
             </Section>
-            <div className="mt-3 pt-3 border-t border-zinc-100">
+            <div className="mt-3 pt-3 border-t border-border">
               <Grid items={allTime} active={period} onPick={pick} />
             </div>
           </PopoverPrimitive.Popup>
@@ -59,7 +59,7 @@ export default function AnalyticsPeriodPicker({ period, onChange }: Props) {
 function Section({ title, children, className }: { title: string; children: React.ReactNode; className?: string }) {
   return (
     <div className={className}>
-      <div className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mb-2">{title}</div>
+      <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">{title}</div>
       {children}
     </div>
   )
@@ -86,8 +86,8 @@ function Grid({
             className={cn(
               'text-xs px-3 py-2 rounded-md border text-left transition-colors flex items-center justify-between gap-2',
               isActive
-                ? 'bg-zinc-900 text-white border-zinc-900'
-                : 'border-zinc-200 text-zinc-700 hover:bg-zinc-50'
+                ? 'bg-primary text-primary-foreground border-primary'
+                : 'border-border text-foreground hover:bg-muted/40'
             )}
           >
             <span>{p.label}</span>

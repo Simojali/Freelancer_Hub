@@ -30,19 +30,19 @@ export default function AnalyticsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-3">
-        <h1 className="text-xl font-semibold text-zinc-900">Analytics</h1>
+        <h1 className="text-xl font-semibold text-foreground">Analytics</h1>
         <AnalyticsPeriodPicker period={period} onChange={setPeriod} />
       </div>
 
       {isLoading || !data ? (
         <div className="space-y-4 animate-pulse">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-24 rounded-lg bg-zinc-100" />)}
+            {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-24 rounded-lg bg-muted" />)}
           </div>
-          <div className="h-72 rounded-lg bg-zinc-100" />
+          <div className="h-72 rounded-lg bg-muted" />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div className="h-72 rounded-lg bg-zinc-100" />
-            <div className="h-72 rounded-lg bg-zinc-100" />
+            <div className="h-72 rounded-lg bg-muted" />
+            <div className="h-72 rounded-lg bg-muted" />
           </div>
         </div>
       ) : data.totals.totalRevenue === 0 ? (
@@ -95,16 +95,16 @@ export default function AnalyticsPage() {
                 value={`${data.totals.concentration.top1Pct}%`}
                 sub={`top 3 clients = ${data.totals.concentration.top3Pct}% of revenue`}
                 icon={AlertTriangle}
-                iconColor={data.totals.concentration.top1Pct >= 50 ? 'text-amber-500' : 'text-zinc-400'}
+                iconColor={data.totals.concentration.top1Pct >= 50 ? 'text-amber-500' : 'text-muted-foreground'}
               />
             )}
           </div>
 
           {/* Monthly revenue chart */}
-          <div className="bg-white border border-zinc-200 rounded-lg p-5">
+          <div className="bg-card border border-border rounded-lg p-5">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-medium text-zinc-700">Revenue by {unitWord}</h3>
-              <span className="text-xs text-zinc-400">{periodLabel}</span>
+              <h3 className="text-sm font-medium text-foreground">Revenue by {unitWord}</h3>
+              <span className="text-xs text-muted-foreground">{periodLabel}</span>
             </div>
             <div className="h-72">
               <ResponsiveContainer width="100%" height="100%">
@@ -141,10 +141,10 @@ export default function AnalyticsPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Top clients */}
-            <div className="bg-white border border-zinc-200 rounded-lg p-5">
-              <h3 className="text-sm font-medium text-zinc-700 mb-3">Top clients</h3>
+            <div className="bg-card border border-border rounded-lg p-5">
+              <h3 className="text-sm font-medium text-foreground mb-3">Top clients</h3>
               {data.topClients.length === 0 ? (
-                <p className="text-sm text-zinc-400 py-8 text-center">No client revenue in this range</p>
+                <p className="text-sm text-muted-foreground py-8 text-center">No client revenue in this range</p>
               ) : (
                 <div className="space-y-2">
                   {data.topClients.map(c => {
@@ -159,10 +159,10 @@ export default function AnalyticsPage() {
                         className="w-full text-left group"
                       >
                         <div className="flex items-center justify-between text-xs mb-1">
-                          <span className="text-zinc-700 group-hover:text-zinc-900 truncate">{c.client_name}</span>
-                          <span className="text-zinc-500 shrink-0 ml-2">{formatCurrency(c.total, currency)}</span>
+                          <span className="text-foreground group-hover:text-foreground truncate">{c.client_name}</span>
+                          <span className="text-muted-foreground shrink-0 ml-2">{formatCurrency(c.total, currency)}</span>
                         </div>
-                        <div className="h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+                        <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                           <div
                             className="h-full bg-emerald-400 group-hover:bg-emerald-500 transition-colors rounded-full"
                             style={{ width: `${pct}%` }}
@@ -176,10 +176,10 @@ export default function AnalyticsPage() {
             </div>
 
             {/* Service mix donut */}
-            <div className="bg-white border border-zinc-200 rounded-lg p-5">
-              <h3 className="text-sm font-medium text-zinc-700 mb-3">Revenue by service</h3>
+            <div className="bg-card border border-border rounded-lg p-5">
+              <h3 className="text-sm font-medium text-foreground mb-3">Revenue by service</h3>
               {data.revenueByService.length === 0 ? (
-                <p className="text-sm text-zinc-400 py-8 text-center">No service revenue in this range</p>
+                <p className="text-sm text-muted-foreground py-8 text-center">No service revenue in this range</p>
               ) : (
                 <div className="flex flex-col sm:flex-row items-center gap-4">
                   <div className="w-44 h-44 shrink-0">
@@ -223,10 +223,10 @@ export default function AnalyticsPage() {
                               className="w-2.5 h-2.5 rounded-full shrink-0"
                               style={{ backgroundColor: meta?.color ?? FALLBACK_COLORS[idx % FALLBACK_COLORS.length] }}
                             />
-                            <span className="text-zinc-700 truncate">{meta?.name ?? entry.service}</span>
+                            <span className="text-foreground truncate">{meta?.name ?? entry.service}</span>
                           </div>
-                          <div className="shrink-0 text-zinc-500">
-                            <span className="font-medium text-zinc-700">{formatCurrency(entry.total, currency)}</span>
+                          <div className="shrink-0 text-muted-foreground">
+                            <span className="font-medium text-foreground">{formatCurrency(entry.total, currency)}</span>
                             <span className="ml-1.5">{entry.pct}%</span>
                           </div>
                         </div>
@@ -241,16 +241,16 @@ export default function AnalyticsPage() {
           {/* ─── Productivity (deliveries + earnings combined) ─── */}
           <div className="pt-2">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-semibold text-zinc-700 uppercase tracking-wide">Productivity</h2>
-              <span className="text-xs text-zinc-400">
+              <h2 className="text-sm font-semibold text-foreground uppercase tracking-wide">Productivity</h2>
+              <span className="text-xs text-muted-foreground">
                 {data.totals.totalDeliveries} deliveries · {formatCurrency(data.totals.totalEarned, currency)} earned · avg {data.totals.avgDeliveriesPerMonth.toFixed(1)}/{granularity === 'daily' ? 'day' : 'mo'}
               </span>
             </div>
-            <div className="bg-white border border-zinc-200 rounded-lg p-5">
+            <div className="bg-card border border-border rounded-lg p-5">
               <div className="flex items-center gap-2 mb-3">
                 <PackageIcon className="w-3.5 h-3.5 text-indigo-500" />
-                <h3 className="text-sm font-medium text-zinc-700">Deliveries &amp; earnings per {unitWord}</h3>
-                <span className="text-[10px] text-zinc-400 ml-auto">
+                <h3 className="text-sm font-medium text-foreground">Deliveries &amp; earnings per {unitWord}</h3>
+                <span className="text-[10px] text-muted-foreground ml-auto">
                   bars = deliveries · line = earned (value created)
                 </span>
               </div>
@@ -311,17 +311,17 @@ export default function AnalyticsPage() {
           {/* ─── Growth ─── */}
           <div className="pt-2">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-semibold text-zinc-700 uppercase tracking-wide">Growth</h2>
-              <span className="text-xs text-zinc-400">
+              <h2 className="text-sm font-semibold text-foreground uppercase tracking-wide">Growth</h2>
+              <span className="text-xs text-muted-foreground">
                 {data.totals.newClientsCount} new clients · {data.totals.newLeadsCount} leads · {data.totals.leadCohortCloseRate}% cohort close rate
               </span>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {/* New clients per bucket */}
-              <div className="bg-white border border-zinc-200 rounded-lg p-5">
+              <div className="bg-card border border-border rounded-lg p-5">
                 <div className="flex items-center gap-2 mb-3">
-                  <UserPlus className="w-3.5 h-3.5 text-zinc-400" />
-                  <h3 className="text-sm font-medium text-zinc-700">New clients per {unitWord}</h3>
+                  <UserPlus className="w-3.5 h-3.5 text-muted-foreground" />
+                  <h3 className="text-sm font-medium text-foreground">New clients per {unitWord}</h3>
                 </div>
                 <div className="h-56">
                   <ResponsiveContainer width="100%" height="100%">
@@ -341,11 +341,11 @@ export default function AnalyticsPage() {
               </div>
 
               {/* Lead cohort close rate */}
-              <div className="bg-white border border-zinc-200 rounded-lg p-5">
+              <div className="bg-card border border-border rounded-lg p-5">
                 <div className="flex items-center gap-2 mb-3">
-                  <Target className="w-3.5 h-3.5 text-zinc-400" />
-                  <h3 className="text-sm font-medium text-zinc-700">Lead cohort close rate</h3>
-                  <span className="text-[10px] text-zinc-400 ml-auto">
+                  <Target className="w-3.5 h-3.5 text-muted-foreground" />
+                  <h3 className="text-sm font-medium text-foreground">Lead cohort close rate</h3>
+                  <span className="text-[10px] text-muted-foreground ml-auto">
                     bars = leads acquired · line = % closed (lifetime)
                   </span>
                 </div>

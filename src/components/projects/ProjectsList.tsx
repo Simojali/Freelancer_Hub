@@ -298,7 +298,7 @@ export default function ProjectsList({
   return (
     <div className="space-y-4">
 
-      {isLoading && <div className="text-sm text-zinc-400 py-8 text-center">Loading...</div>}
+      {isLoading && <div className="text-sm text-muted-foreground py-8 text-center">Loading...</div>}
 
       {!isLoading && filtered.length === 0 && (
         <EmptyState
@@ -336,14 +336,14 @@ export default function ProjectsList({
             onClick={() => toggleCollapse(group.key)}
             className="flex items-center gap-2 w-full text-left group"
           >
-            <ChevronDown className={cn('w-3.5 h-3.5 text-zinc-400 transition-transform shrink-0', collapsed.has(group.key) && '-rotate-90')} />
-            <span className="text-xs font-semibold text-zinc-700 uppercase tracking-wide">
+            <ChevronDown className={cn('w-3.5 h-3.5 text-muted-foreground transition-transform shrink-0', collapsed.has(group.key) && '-rotate-90')} />
+            <span className="text-xs font-semibold text-foreground uppercase tracking-wide">
               {group.label}
             </span>
-            <span className="text-xs text-zinc-400 font-normal">
+            <span className="text-xs text-muted-foreground font-normal">
               {group.projects.length} project{group.projects.length !== 1 ? 's' : ''}
             </span>
-            <div className="flex-1 h-px bg-zinc-100 ml-1" />
+            <div className="flex-1 h-px bg-muted ml-1" />
           </button>
 
           {/* Rows */}
@@ -364,7 +364,7 @@ export default function ProjectsList({
               {activeTab === 'all' && (
                 <div className="flex items-center gap-2 mb-1">
                   <div className="w-1.5 h-1.5 rounded-full bg-teal-400" />
-                  <span className="text-xs font-medium text-zinc-500 uppercase tracking-wide">Retainers</span>
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Retainers</span>
                 </div>
               )}
               {retainers.map(p => (
@@ -383,7 +383,7 @@ export default function ProjectsList({
               {activeTab === 'all' && (
                 <div className="flex items-center gap-2 mb-1 mt-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-violet-400" />
-                  <span className="text-xs font-medium text-zinc-500 uppercase tracking-wide">Packages</span>
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Packages</span>
                 </div>
               )}
               {packages.map(p => (
@@ -402,8 +402,8 @@ export default function ProjectsList({
             <div className="space-y-2">
               {activeTab === 'all' && (
                 <div className="flex items-center gap-2 mb-1 mt-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
-                  <span className="text-xs font-medium text-zinc-500 uppercase tracking-wide">Gigs</span>
+                  <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50" />
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Gigs</span>
                 </div>
               )}
               {gigs.map(p => (
@@ -417,7 +417,7 @@ export default function ProjectsList({
             <div className="space-y-2">
               <div className="flex items-center gap-2 mb-1 mt-2">
                 <div className="w-1.5 h-1.5 rounded-full bg-teal-200" />
-                <span className="text-xs font-medium text-zinc-500 uppercase tracking-wide">
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                   Billed Retainer Cycles — {visibleCycles.length}
                 </span>
               </div>

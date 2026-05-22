@@ -49,23 +49,23 @@ export default function ClientFormModal({ open, onClose, onSave, client }: Props
         </DialogHeader>
         <div className="space-y-3 mt-2">
           <div>
-            <label className="text-xs text-zinc-500 mb-1 block">Client Name *</label>
+            <label className="text-xs text-muted-foreground mb-1 block">Client Name *</label>
             <Input value={form.client_name ?? ''} onChange={e => set('client_name', e.target.value)} placeholder="e.g. Leigh Brown" />
           </div>
           <div>
-            <label className="text-xs text-zinc-500 mb-1 block">Email</label>
+            <label className="text-xs text-muted-foreground mb-1 block">Email</label>
             <Input value={form.email ?? ''} onChange={e => set('email', e.target.value)} placeholder="client@email.com" />
           </div>
           <div>
-            <label className="text-xs text-zinc-500 mb-1 block">Channel Link</label>
+            <label className="text-xs text-muted-foreground mb-1 block">Channel Link</label>
             <Input value={form.channel_link ?? ''} onChange={e => set('channel_link', e.target.value)} placeholder="https://youtube.com/@..." />
           </div>
           <div>
-            <label className="text-xs text-zinc-500 mb-1 block">Channel Link #2</label>
+            <label className="text-xs text-muted-foreground mb-1 block">Channel Link #2</label>
             <Input value={form.channel_link_2 ?? ''} onChange={e => set('channel_link_2', e.target.value)} placeholder="https://youtube.com/..." />
           </div>
           <div>
-            <label className="text-xs text-zinc-500 mb-1 block">Notes</label>
+            <label className="text-xs text-muted-foreground mb-1 block">Notes</label>
             <Input value={form.notes ?? ''} onChange={e => set('notes', e.target.value)} placeholder="Any notes..." />
           </div>
         </div>

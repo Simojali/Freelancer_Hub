@@ -23,20 +23,20 @@ export default function GigRow({ project, onEdit, onDelete }: Props) {
 
   return (
     <div className={cn(
-      'flex items-center gap-4 px-4 py-3 bg-white border border-zinc-200 rounded-lg hover:border-zinc-300 transition-colors',
+      'flex items-center gap-4 px-4 py-3 bg-card border border-border rounded-lg hover:border-border transition-colors',
       isOverdue && 'bg-red-50 border-red-200'
     )}>
       {/* Type indicator */}
-      <div className="shrink-0 w-1.5 h-8 rounded-full bg-zinc-300" />
+      <div className="shrink-0 w-1.5 h-8 rounded-full bg-muted" />
 
       {/* Name + client */}
       <div className="flex-1 min-w-0">
-        <div className="font-medium text-zinc-900 text-sm truncate">{project.name}</div>
+        <div className="font-medium text-foreground text-sm truncate">{project.name}</div>
         {project.clients?.client_name && (
-          <div className="text-xs text-zinc-400 mt-0.5">{project.clients.client_name}</div>
+          <div className="text-xs text-muted-foreground mt-0.5">{project.clients.client_name}</div>
         )}
         {project.due_date && (
-          <div className="text-xs text-zinc-400 mt-0.5">Due {formatDate(project.due_date)}</div>
+          <div className="text-xs text-muted-foreground mt-0.5">Due {formatDate(project.due_date)}</div>
         )}
       </div>
 
@@ -45,7 +45,7 @@ export default function GigRow({ project, onEdit, onDelete }: Props) {
 
       {/* Price */}
       {project.price != null && (
-        <span className="text-sm text-zinc-600 shrink-0">{formatCurrency(project.price, currency)}</span>
+        <span className="text-sm text-muted-foreground shrink-0">{formatCurrency(project.price, currency)}</span>
       )}
 
       {/* Status + Overdue + Unpaid */}

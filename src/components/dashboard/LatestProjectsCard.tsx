@@ -17,10 +17,10 @@ export default function LatestProjectsCard({ recentProjects }: Props) {
   }
 
   return (
-    <div className="bg-white border border-zinc-200 rounded-lg p-5">
-      <h3 className="text-sm font-medium text-zinc-700 mb-3">Latest Projects</h3>
+    <div className="bg-card border border-border rounded-lg p-5">
+      <h3 className="text-sm font-medium text-foreground mb-3">Latest Projects</h3>
       {recentProjects.length === 0 ? (
-        <p className="text-sm text-zinc-400">No projects yet</p>
+        <p className="text-sm text-muted-foreground">No projects yet</p>
       ) : (
         <div className="space-y-1 -mx-2">
           {recentProjects.map(p => (
@@ -28,11 +28,11 @@ export default function LatestProjectsCard({ recentProjects }: Props) {
               key={p.id}
               type="button"
               onClick={() => openProject(p)}
-              className="w-full flex items-center justify-between gap-2 px-2 py-1.5 rounded hover:bg-zinc-50 transition-colors text-left"
+              className="w-full flex items-center justify-between gap-2 px-2 py-1.5 rounded hover:bg-muted/40 transition-colors text-left"
             >
               <div className="min-w-0">
-                <div className="text-sm text-zinc-800 font-medium truncate">{p.name}</div>
-                {p.clients?.client_name && <div className="text-xs text-zinc-400">{p.clients.client_name}</div>}
+                <div className="text-sm text-foreground font-medium truncate">{p.name}</div>
+                {p.clients?.client_name && <div className="text-xs text-muted-foreground">{p.clients.client_name}</div>}
               </div>
               <div className="shrink-0">
                 {p.project_type === 'package'

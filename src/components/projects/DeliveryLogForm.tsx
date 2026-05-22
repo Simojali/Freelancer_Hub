@@ -72,7 +72,7 @@ export default function DeliveryLogForm({ projectId, onLogged, disabled, disable
 
   return (
     <div className="space-y-2" onKeyDown={handleKeyDown}>
-      <div className="text-xs font-medium text-zinc-500 uppercase tracking-wide">Log a delivery</div>
+      <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Log a delivery</div>
 
       <Input
         value={description}
@@ -82,7 +82,7 @@ export default function DeliveryLogForm({ projectId, onLogged, disabled, disable
       />
 
       <div className="relative">
-        <LinkIcon className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+        <LinkIcon className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
         <Input
           value={workUrl}
           onChange={e => setWorkUrl(e.target.value)}
@@ -102,8 +102,8 @@ export default function DeliveryLogForm({ projectId, onLogged, disabled, disable
           aria-label="Delivery date"
         />
         {!hideQuantity && (
-          <div className="flex items-center gap-1 border border-zinc-200 rounded-md px-2">
-            <span className="text-xs text-zinc-400">Qty</span>
+          <div className="flex items-center gap-1 border border-border rounded-md px-2">
+            <span className="text-xs text-muted-foreground">Qty</span>
             <Input
               type="number"
               min={1}

@@ -153,11 +153,11 @@ export default function ClientProfilePage() {
   if (isLoading) {
     return (
       <div className="space-y-6 animate-pulse">
-        <div className="h-8 w-64 bg-zinc-100 rounded" />
+        <div className="h-8 w-64 bg-muted rounded" />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-24 rounded-lg bg-zinc-100" />)}
+          {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-24 rounded-lg bg-muted" />)}
         </div>
-        <div className="h-48 bg-zinc-100 rounded-lg" />
+        <div className="h-48 bg-muted rounded-lg" />
       </div>
     )
   }
@@ -165,7 +165,7 @@ export default function ClientProfilePage() {
   if (error || !profile?.client) {
     return (
       <div className="py-16 text-center space-y-3">
-        <div className="text-sm text-zinc-400">Client not found.</div>
+        <div className="text-sm text-muted-foreground">Client not found.</div>
         <Button variant="outline" size="sm" onClick={() => navigate('/clients')}>
           <ArrowLeft className="w-4 h-4 mr-1" /> Back to Clients
         </Button>
@@ -254,7 +254,7 @@ export default function ClientProfilePage() {
         )}
         {gList.length > 0 && (
           <div className="space-y-2">
-            <SectionLabel color="bg-zinc-400">Gigs</SectionLabel>
+            <SectionLabel color="bg-muted-foreground/50">Gigs</SectionLabel>
             {gList.map(renderGig)}
           </div>
         )}
@@ -273,7 +273,7 @@ export default function ClientProfilePage() {
         </Button>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="text-xl font-semibold text-zinc-900">{client.client_name}</h1>
+            <h1 className="text-xl font-semibold text-foreground">{client.client_name}</h1>
             <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => setEditClientOpen(true)}>
               <Pencil className="w-3.5 h-3.5" />
             </Button>
@@ -301,24 +301,24 @@ export default function ClientProfilePage() {
           {client.email && (
             <a
               href={`mailto:${client.email}`}
-              className="inline-flex items-center gap-1 text-sm text-zinc-500 mt-0.5 hover:text-zinc-900 transition-colors"
+              className="inline-flex items-center gap-1 text-sm text-muted-foreground mt-0.5 hover:text-foreground transition-colors"
             >
               <Mail className="w-3.5 h-3.5" /> {client.email}
             </a>
           )}
           <div className="flex items-center gap-4 mt-1 flex-wrap">
             {client.channel_link && (
-              <a href={client.channel_link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-zinc-400 hover:text-zinc-600 transition-colors">
+              <a href={client.channel_link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-muted-foreground hover:text-muted-foreground transition-colors">
                 Channel 1 <ExternalLink className="w-3 h-3" />
               </a>
             )}
             {client.channel_link_2 && (
-              <a href={client.channel_link_2} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-zinc-400 hover:text-zinc-600 transition-colors">
+              <a href={client.channel_link_2} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-muted-foreground hover:text-muted-foreground transition-colors">
                 Channel 2 <ExternalLink className="w-3 h-3" />
               </a>
             )}
           </div>
-          {client.notes && <div className="text-xs text-zinc-400 italic mt-1">{client.notes}</div>}
+          {client.notes && <div className="text-xs text-muted-foreground italic mt-1">{client.notes}</div>}
         </div>
       </div>
 
@@ -350,12 +350,12 @@ export default function ClientProfilePage() {
           value={formatDate(client.created_at)}
           sub="first became a client"
           icon={Mail}
-          iconColor="text-zinc-400"
+          iconColor="text-muted-foreground"
         />
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center border-b border-zinc-200 overflow-x-auto">
+      <div className="flex items-center border-b border-border overflow-x-auto">
         {([
           { key: 'overview', label: 'Overview' },
           { key: 'projects', label: `Projects (${projects.length})` },
@@ -368,8 +368,8 @@ export default function ClientProfilePage() {
             className={cn(
               'px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap',
               tab === t.key
-                ? 'border-zinc-800 text-zinc-900'
-                : 'border-transparent text-zinc-400 hover:text-zinc-600',
+                ? 'border-primary text-foreground'
+                : 'border-transparent text-muted-foreground hover:text-muted-foreground',
             )}
           >
             {t.label}
@@ -382,9 +382,9 @@ export default function ClientProfilePage() {
         <div className="space-y-6">
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h2 className="text-sm font-medium text-zinc-700">Recent projects</h2>
+              <h2 className="text-sm font-medium text-foreground">Recent projects</h2>
               {projects.length > 5 && (
-                <button type="button" onClick={() => setTab('projects')} className="text-xs text-zinc-500 hover:text-zinc-900">
+                <button type="button" onClick={() => setTab('projects')} className="text-xs text-muted-foreground hover:text-foreground">
                   See all {projects.length} →
                 </button>
               )}
@@ -397,9 +397,9 @@ export default function ClientProfilePage() {
 
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h2 className="text-sm font-medium text-zinc-700">Recent payments</h2>
+              <h2 className="text-sm font-medium text-foreground">Recent payments</h2>
               {revenue.length > 5 && (
-                <button type="button" onClick={() => setTab('payments')} className="text-xs text-zinc-500 hover:text-zinc-900">
+                <button type="button" onClick={() => setTab('payments')} className="text-xs text-muted-foreground hover:text-foreground">
                   See all {revenue.length} →
                 </button>
               )}
@@ -432,8 +432,8 @@ export default function ClientProfilePage() {
                 return (
                   <div key={key} className="space-y-2">
                     <div className="flex items-center justify-between px-1">
-                      <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wide">{label}</span>
-                      <span className="text-xs font-medium text-zinc-700">
+                      <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{label}</span>
+                      <span className="text-xs font-medium text-foreground">
                         {formatCurrency(monthTotal, currency)} · {items.length} payment{items.length !== 1 ? 's' : ''}
                       </span>
                     </div>
@@ -554,7 +554,7 @@ function SectionLabel({ color, children }: { color: string; children: React.Reac
   return (
     <div className="flex items-center gap-2">
       <div className={cn('w-1.5 h-1.5 rounded-full', color)} />
-      <span className="text-xs font-medium text-zinc-500 uppercase tracking-wide">{children}</span>
+      <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{children}</span>
     </div>
   )
 }
@@ -566,20 +566,20 @@ interface PaymentListProps {
 }
 function PaymentList({ items, onViewDeliveries, currency }: PaymentListProps) {
   return (
-    <div className="bg-white border border-zinc-200 rounded-lg overflow-hidden">
+    <div className="bg-card border border-border rounded-lg overflow-hidden">
       {items.map((r, i) => (
         <div
           key={r.id}
-          className={`flex items-center justify-between gap-3 px-4 py-3 ${i < items.length - 1 ? 'border-b border-zinc-100' : ''}`}
+          className={`flex items-center justify-between gap-3 px-4 py-3 ${i < items.length - 1 ? 'border-b border-border' : ''}`}
         >
-          <div className="text-xs text-zinc-400 shrink-0 w-20">{formatDate(r.payment_date)}</div>
+          <div className="text-xs text-muted-foreground shrink-0 w-20">{formatDate(r.payment_date)}</div>
           <div className="flex-1 min-w-0 flex items-center gap-2 flex-wrap">
             {r.projects?.name && (
-              <span className="text-xs px-2 py-0.5 rounded-full border font-medium bg-zinc-50 text-zinc-600 border-zinc-200">
+              <span className="text-xs px-2 py-0.5 rounded-full border font-medium bg-muted/40 text-muted-foreground border-border">
                 {r.projects.name}
               </span>
             )}
-            {r.description && <span className="text-xs text-zinc-400">{r.description}</span>}
+            {r.description && <span className="text-xs text-muted-foreground">{r.description}</span>}
             {(r.linked_delivery_count ?? 0) > 0 && (
               <button
                 type="button"
@@ -591,7 +591,7 @@ function PaymentList({ items, onViewDeliveries, currency }: PaymentListProps) {
             )}
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <span className="text-sm font-semibold text-zinc-900">{formatCurrency(Number(r.amount), currency)}</span>
+            <span className="text-sm font-semibold text-foreground">{formatCurrency(Number(r.amount), currency)}</span>
             <PaymentStatusBadge status={r.status as PaymentStatus} />
           </div>
         </div>

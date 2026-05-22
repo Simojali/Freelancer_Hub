@@ -79,7 +79,7 @@ export default function ClientGrid() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <div className="relative">
-            <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+            <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
             <Input
               value={search}
               onChange={e => setSearch(e.target.value)}
@@ -104,7 +104,7 @@ export default function ClientGrid() {
         </Button>
       </div>
 
-      {isLoading && <div className="text-sm text-zinc-400 py-8 text-center">Loading...</div>}
+      {isLoading && <div className="text-sm text-muted-foreground py-8 text-center">Loading...</div>}
 
       {!isLoading && clients.length === 0 && (
         <EmptyState

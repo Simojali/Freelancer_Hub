@@ -37,7 +37,7 @@ export default function DeliveryPeek({ projectId, limit = 5, onViewAll, disabled
 
       <div>
         <div className="flex items-center justify-between mb-1.5">
-          <div className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">
+          <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
             {deliveries.length === 0
               ? 'No deliveries yet'
               : hasMore
@@ -47,7 +47,7 @@ export default function DeliveryPeek({ projectId, limit = 5, onViewAll, disabled
           <button
             type="button"
             onClick={onViewAll}
-            className="text-xs text-zinc-500 hover:text-zinc-900 inline-flex items-center gap-1"
+            className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
           >
             See all <ArrowRight className="w-3 h-3" />
           </button>

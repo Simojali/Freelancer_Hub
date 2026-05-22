@@ -14,7 +14,7 @@ interface Props {
   onClick?: () => void
 }
 
-export default function KpiCard({ label, value, icon: Icon, iconColor = 'text-zinc-400', sub, onClick }: Props) {
+export default function KpiCard({ label, value, icon: Icon, iconColor = 'text-muted-foreground', sub, onClick }: Props) {
   const interactive = !!onClick
   return (
     <Card
@@ -24,15 +24,15 @@ export default function KpiCard({ label, value, icon: Icon, iconColor = 'text-zi
       onKeyDown={interactive
         ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick!() } }
         : undefined}
-      className={`border border-zinc-200 shadow-none ${interactive ? 'cursor-pointer hover:border-zinc-300 hover:shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-zinc-300 focus:ring-offset-1' : ''}`}
+      className={`border border-border shadow-none ${interactive ? 'cursor-pointer hover:border-border hover:shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-border focus:ring-offset-1' : ''}`}
     >
       <CardContent className="p-5">
         <div className="flex items-center justify-between mb-3">
-          <span className="text-xs font-medium text-zinc-500 uppercase tracking-wide">{label}</span>
+          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{label}</span>
           <Icon className={`w-4 h-4 ${iconColor}`} />
         </div>
-        <div className="text-2xl font-semibold text-zinc-900">{value}</div>
-        {sub && <div className="text-xs text-zinc-400 mt-1 truncate">{sub}</div>}
+        <div className="text-2xl font-semibold text-foreground">{value}</div>
+        {sub && <div className="text-xs text-muted-foreground mt-1 truncate">{sub}</div>}
       </CardContent>
     </Card>
   )

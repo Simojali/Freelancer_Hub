@@ -23,12 +23,12 @@ export default function EmptyState({ icon: Icon, title, description, action, siz
   return (
     <div className={cn('flex flex-col items-center justify-center gap-2 text-center', pad, className)}>
       {Icon && (
-        <div className="rounded-full bg-zinc-100 p-3 mb-1">
-          <Icon className={cn(iconSize, 'text-zinc-400')} />
+        <div className="rounded-full bg-muted p-3 mb-1">
+          <Icon className={cn(iconSize, 'text-muted-foreground')} />
         </div>
       )}
-      <div className="text-sm font-medium text-zinc-700">{title}</div>
-      {description && <div className="text-xs text-zinc-400 max-w-xs">{description}</div>}
+      <div className="text-sm font-medium text-foreground">{title}</div>
+      {description && <div className="text-xs text-muted-foreground max-w-xs">{description}</div>}
       {action && (
         <Button size="sm" onClick={action.onClick} className="mt-2">
           {ActionIcon && <ActionIcon className="w-4 h-4 mr-1" />}

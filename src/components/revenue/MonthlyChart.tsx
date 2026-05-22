@@ -43,8 +43,8 @@ export default function MonthlyChart({ revenue }: Props) {
   }, [revenue, services])
 
   return (
-    <div className="bg-white border border-zinc-200 rounded-lg p-5">
-      <h3 className="text-sm font-medium text-zinc-700 mb-4">Monthly Revenue (Last 12 Months)</h3>
+    <div className="bg-card border border-border rounded-lg p-5">
+      <h3 className="text-sm font-medium text-foreground mb-4">Monthly Revenue (Last 12 Months)</h3>
       <ResponsiveContainer width="100%" height={220}>
         <BarChart data={data} barSize={16}>
           <XAxis dataKey="month" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />

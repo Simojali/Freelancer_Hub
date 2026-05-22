@@ -19,36 +19,36 @@ export default function CycleRow({ cycle, onView }: Props) {
   const { currency } = useSettings()
 
   return (
-    <div className="flex items-center gap-4 px-4 py-3 bg-white border border-zinc-200 rounded-lg hover:border-zinc-300 transition-colors opacity-90">
+    <div className="flex items-center gap-4 px-4 py-3 bg-card border border-border rounded-lg hover:border-border transition-colors opacity-90">
       {/* Type indicator — muted teal to signal "completed retainer cycle" */}
       <div className="shrink-0 w-1.5 h-8 rounded-full bg-teal-200" />
 
       {/* Project + client */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5">
-          <PackageIcon className="w-3 h-3 text-zinc-400 shrink-0" />
-          <span className="font-medium text-zinc-700 text-sm truncate">{cycle.project_name}</span>
-          <span className="text-xs text-zinc-400">cycle</span>
+          <PackageIcon className="w-3 h-3 text-muted-foreground shrink-0" />
+          <span className="font-medium text-foreground text-sm truncate">{cycle.project_name}</span>
+          <span className="text-xs text-muted-foreground">cycle</span>
         </div>
         {cycle.client_name && (
-          <div className="text-xs text-zinc-400 mt-0.5">{cycle.client_name}</div>
+          <div className="text-xs text-muted-foreground mt-0.5">{cycle.client_name}</div>
         )}
       </div>
 
       <ServiceBadge slug={cycle.service_type} />
 
       {/* Delivery count */}
-      <span className="text-xs text-zinc-500 shrink-0">
+      <span className="text-xs text-muted-foreground shrink-0">
         {cycle.delivery_count} deliver{cycle.delivery_count !== 1 ? 'ies' : 'y'}
       </span>
 
       {/* Amount */}
-      <span className="text-sm font-semibold text-zinc-700 shrink-0">
+      <span className="text-sm font-semibold text-foreground shrink-0">
         {formatCurrency(cycle.amount, currency)}
       </span>
 
       {/* Paid date */}
-      <span className="text-xs text-zinc-400 shrink-0 whitespace-nowrap">
+      <span className="text-xs text-muted-foreground shrink-0 whitespace-nowrap">
         {cycle.status === 'paid' ? 'paid' : 'billed'} {formatDate(cycle.payment_date)}
       </span>
 
@@ -57,7 +57,7 @@ export default function CycleRow({ cycle, onView }: Props) {
         <Button
           variant="ghost"
           size="sm"
-          className="h-7 w-7 p-0 text-zinc-500 hover:text-zinc-900"
+          className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
           onClick={onView}
           title="View deliveries in this cycle"
         >

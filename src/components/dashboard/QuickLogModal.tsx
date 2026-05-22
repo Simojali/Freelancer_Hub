@@ -75,7 +75,7 @@ export default function QuickLogModal({ open, onClose, onViewAll }: Props) {
       context = (
         <div className="flex items-center gap-2 text-xs">
           <span className="px-1.5 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200 text-[10px] font-medium">RETAINER</span>
-          <span className="text-zinc-500">
+          <span className="text-muted-foreground">
             {unbilled} unbilled · <span className="font-semibold text-teal-600">{formatCurrency(owed, currency)}</span> owed
           </span>
         </div>
@@ -87,7 +87,7 @@ export default function QuickLogModal({ open, onClose, onViewAll }: Props) {
       context = (
         <div className="flex items-center gap-2 text-xs">
           <span className="px-1.5 py-0.5 rounded-full bg-violet-50 text-violet-700 border border-violet-200 text-[10px] font-medium">PACKAGE</span>
-          <span className="text-zinc-500">{left} of {total} credits left</span>
+          <span className="text-muted-foreground">{left} of {total} credits left</span>
         </div>
       )
     }
@@ -104,7 +104,7 @@ export default function QuickLogModal({ open, onClose, onViewAll }: Props) {
           {context && <div>{context}</div>}
 
           {eligible.length === 0 ? (
-            <div className="text-xs text-zinc-400 py-2">
+            <div className="text-xs text-muted-foreground py-2">
               No retainers or active packages yet. Once you have one, log deliveries here without leaving the dashboard.
             </div>
           ) : (
@@ -139,8 +139,8 @@ export default function QuickLogModal({ open, onClose, onViewAll }: Props) {
 
               {/* Recent deliveries — last 5 most-recent + see-all CTA */}
               {selectedProject && (
-                <div className="border-t border-zinc-100 pt-3 mt-1">
-                  <div className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mb-1.5">
+                <div className="border-t border-border pt-3 mt-1">
+                  <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">
                     {projectDeliveries.length === 0
                       ? 'No deliveries yet'
                       : projectDeliveries.length > 5

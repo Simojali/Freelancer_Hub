@@ -36,18 +36,18 @@ export default function RevenueDeliveriesModal({ open, onClose, revenue }: Props
         </DialogHeader>
 
         {revenue && (
-          <div className="flex items-center justify-between bg-zinc-50 rounded-lg px-4 py-3 mt-2 text-sm">
-            <div className="text-zinc-500">
+          <div className="flex items-center justify-between bg-muted/40 rounded-lg px-4 py-3 mt-2 text-sm">
+            <div className="text-muted-foreground">
               {revenue.projects?.name ?? 'Unknown project'} · {formatDate(revenue.payment_date ?? '')}
             </div>
-            <div className="font-semibold text-zinc-900">
+            <div className="font-semibold text-foreground">
               {formatCurrency(Number(revenue.amount), currency)}
             </div>
           </div>
         )}
 
         <div className="mt-3">
-          {isLoading && <div className="text-sm text-zinc-400 py-4 text-center">Loading...</div>}
+          {isLoading && <div className="text-sm text-muted-foreground py-4 text-center">Loading...</div>}
           {!isLoading && (
             <DeliveryList
               projectId={revenue?.project_id ?? undefined}

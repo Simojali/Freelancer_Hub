@@ -4,12 +4,21 @@ import { BrowserRouter } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import './index.css'
 import App from './App.tsx'
+import { ThemeProvider, useTheme } from '@/lib/theme'
+
+// Toaster pulls its own theme so sonner notifications match the rest of the chrome.
+function ThemedToaster() {
+  const { resolvedTheme } = useTheme()
+  return <Toaster position="bottom-right" richColors closeButton theme={resolvedTheme} />
+}
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <BrowserRouter>
-      <App />
-      <Toaster position="bottom-right" richColors closeButton />
-    </BrowserRouter>
+    <ThemeProvider>
+      <BrowserRouter>
+        <App />
+        <ThemedToaster />
+      </BrowserRouter>
+    </ThemeProvider>
   </StrictMode>,
 )

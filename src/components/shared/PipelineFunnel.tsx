@@ -21,10 +21,10 @@ export default function PipelineFunnel({ pipeline, total }: Props) {
   const base = total > 0 ? total : 1
 
   return (
-    <div className="bg-white border border-zinc-200 rounded-lg p-5">
+    <div className="bg-card border border-border rounded-lg p-5">
       <div className="flex items-center justify-between mb-5">
-        <h3 className="text-sm font-medium text-zinc-700">Outreach Pipeline</h3>
-        <span className="text-xs text-zinc-400">{total} in outreach</span>
+        <h3 className="text-sm font-medium text-foreground">Outreach Pipeline</h3>
+        <span className="text-xs text-muted-foreground">{total} in outreach</span>
       </div>
 
       <div className="space-y-1">
@@ -46,11 +46,11 @@ export default function PipelineFunnel({ pipeline, total }: Props) {
                     className="w-1.5 h-4 rounded-full shrink-0"
                     style={{ backgroundColor: color }}
                   />
-                  <span className="text-xs text-zinc-600 truncate">{label}</span>
+                  <span className="text-xs text-muted-foreground truncate">{label}</span>
                 </div>
 
                 {/* Bar */}
-                <div className="flex-1 bg-zinc-100 rounded-full h-2.5 overflow-hidden">
+                <div className="flex-1 bg-muted rounded-full h-2.5 overflow-hidden">
                   <div
                     className="h-2.5 rounded-full transition-all duration-500"
                     style={{ width: `${pct}%`, backgroundColor: color, opacity: 0.85 }}
@@ -59,8 +59,8 @@ export default function PipelineFunnel({ pipeline, total }: Props) {
 
                 {/* Count */}
                 <div className="w-16 text-right shrink-0">
-                  <span className="text-sm font-semibold text-zinc-800">{count}</span>
-                  <span className="text-xs text-zinc-400 ml-1">({pct}%)</span>
+                  <span className="text-sm font-semibold text-foreground">{count}</span>
+                  <span className="text-xs text-muted-foreground ml-1">({pct}%)</span>
                 </div>
 
                 {/* Drop-off (skip first stage) */}
@@ -76,11 +76,11 @@ export default function PipelineFunnel({ pipeline, total }: Props) {
       </div>
 
       {/* Bottom summary */}
-      <div className="mt-4 pt-4 border-t border-zinc-100 flex items-center justify-end text-xs">
+      <div className="mt-4 pt-4 border-t border-border flex items-center justify-end text-xs">
         <span className="font-medium text-green-600">
           {pipeline.closed} closed
           {pipeline.sample > 0 && (
-            <span className="text-zinc-400 font-normal ml-1">
+            <span className="text-muted-foreground font-normal ml-1">
               ({Math.round((pipeline.closed / pipeline.sample) * 100)}% close rate)
             </span>
           )}

@@ -22,7 +22,7 @@ export default function DashboardView() {
   // accessible while data is being fetched.
   const header = (
     <div className="flex items-center justify-between gap-3 mb-6">
-      <h1 className="text-xl font-semibold text-zinc-900">Dashboard</h1>
+      <h1 className="text-xl font-semibold text-foreground">Dashboard</h1>
       <Button size="sm" onClick={() => setQuickLogOpen(true)}>
         <PackageIcon className="w-4 h-4 mr-1" /> Quick Log Delivery
       </Button>
@@ -36,10 +36,10 @@ export default function DashboardView() {
         <div className="space-y-6">
           <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="h-24 rounded-lg bg-zinc-100 animate-pulse" />
+              <div key={i} className="h-24 rounded-lg bg-muted animate-pulse" />
             ))}
           </div>
-          <div className="h-64 rounded-lg bg-zinc-100 animate-pulse" />
+          <div className="h-64 rounded-lg bg-muted animate-pulse" />
         </div>
       </div>
     )
@@ -58,7 +58,7 @@ export default function DashboardView() {
             value={
               <span>
                 {kpis.activeClients}
-                <span className="text-zinc-400 text-lg font-normal ml-1.5">/ {kpis.totalClients}</span>
+                <span className="text-muted-foreground text-lg font-normal ml-1.5">/ {kpis.totalClients}</span>
               </span>
             }
             sub={kpis.topClientThisMonth

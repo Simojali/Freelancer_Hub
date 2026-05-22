@@ -12,7 +12,7 @@ interface Props {
 }
 
 function creditsColor(left: number, total: number): string {
-  if (total === 0) return 'text-zinc-400'
+  if (total === 0) return 'text-muted-foreground'
   const ratio = left / total
   if (ratio > 0.3) return 'text-emerald-600'
   if (ratio > 0) return 'text-amber-500'
@@ -35,8 +35,8 @@ export default function PackageDetailModal({ open, onClose, project, onDeliveryC
         </DialogHeader>
 
         {/* Credits display */}
-        <div className="flex items-center justify-between bg-zinc-50 rounded-lg px-4 py-3 mt-2">
-          <span className="text-sm text-zinc-500">Credits remaining</span>
+        <div className="flex items-center justify-between bg-muted/40 rounded-lg px-4 py-3 mt-2">
+          <span className="text-sm text-muted-foreground">Credits remaining</span>
           <span className={`text-xl font-bold ${creditsColor(creditsLeft, total)}`}>
             {creditsLeft} / {total}
           </span>

@@ -34,16 +34,16 @@ function ChannelCell({ lead }: ChannelCellProps) {
   return (
     <td className="px-4 py-2.5">
       <div className="flex items-center gap-1.5">
-        <span className="font-medium text-zinc-900 truncate max-w-[160px]" title={lead.channel_name}>
+        <span className="font-medium text-foreground truncate max-w-[160px]" title={lead.channel_name}>
           {lead.channel_name}
         </span>
         {lead.channel_link && (
-          <a href={lead.channel_link} target="_blank" rel="noopener noreferrer" className="text-zinc-400 hover:text-zinc-600 shrink-0">
+          <a href={lead.channel_link} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-muted-foreground shrink-0">
             <ExternalLink className="w-3 h-3" />
           </a>
         )}
       </div>
-      {lead.email && <div className="text-xs text-zinc-400 truncate max-w-[160px]">{lead.email}</div>}
+      {lead.email && <div className="text-xs text-muted-foreground truncate max-w-[160px]">{lead.email}</div>}
     </td>
   )
 }
@@ -101,7 +101,7 @@ export default function LeadsTable() {
             value={prospects.length}
             sub={`${outreach.length} in outreach`}
             icon={Users}
-            iconColor="text-zinc-400"
+            iconColor="text-muted-foreground"
           />
           <KpiCard
             label="Close Rate"
@@ -137,7 +137,7 @@ export default function LeadsTable() {
         </div>
       </div>
 
-      {isLoading && <div className="text-center py-8 text-zinc-400 text-sm">Loading...</div>}
+      {isLoading && <div className="text-center py-8 text-muted-foreground text-sm">Loading...</div>}
 
       {/* Outreach pipeline — visible once at least one lead has reached the sample stage */}
       {!isLoading && pipeline.sample > 0 && (
@@ -159,33 +159,33 @@ export default function LeadsTable() {
       {!isLoading && (leads.length > 0 || service !== 'all' || search) && (
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-zinc-300" />
-            <span className="text-xs font-medium text-zinc-500 uppercase tracking-wide">
+            <div className="w-1.5 h-1.5 rounded-full bg-muted" />
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
               Prospects — {prospects.length}
             </span>
-            <span className="text-xs text-zinc-400">· Check "Sample" to move to Outreach</span>
+            <span className="text-xs text-muted-foreground">· Check "Sample" to move to Outreach</span>
           </div>
 
-          <div className="border border-zinc-200 rounded-lg overflow-x-auto bg-white">
+          <div className="border border-border rounded-lg overflow-x-auto bg-card">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-zinc-100 bg-zinc-50">
-                  <th className="text-left px-4 py-3 font-medium text-zinc-500 whitespace-nowrap w-48">Channel</th>
-                  <th className="text-left px-3 py-3 font-medium text-zinc-500 whitespace-nowrap">Service</th>
-                  <th className="text-left px-3 py-3 font-medium text-zinc-500 whitespace-nowrap">Subs</th>
-                  <th className="px-2 py-3 font-medium text-zinc-500 whitespace-nowrap text-center">Sample</th>
-                  <th className="px-3 py-3 font-medium text-zinc-500 text-right">Actions</th>
+                <tr className="border-b border-border bg-muted/40">
+                  <th className="text-left px-4 py-3 font-medium text-muted-foreground whitespace-nowrap w-48">Channel</th>
+                  <th className="text-left px-3 py-3 font-medium text-muted-foreground whitespace-nowrap">Service</th>
+                  <th className="text-left px-3 py-3 font-medium text-muted-foreground whitespace-nowrap">Subs</th>
+                  <th className="px-2 py-3 font-medium text-muted-foreground whitespace-nowrap text-center">Sample</th>
+                  <th className="px-3 py-3 font-medium text-muted-foreground text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {prospects.length === 0 && (
-                  <tr><td colSpan={5} className="text-center py-6 text-zinc-400">No prospects</td></tr>
+                  <tr><td colSpan={5} className="text-center py-6 text-muted-foreground">No prospects</td></tr>
                 )}
                 {prospects.map(lead => (
-                  <tr key={lead.id} className="border-b border-zinc-100 hover:bg-zinc-50 transition-colors">
+                  <tr key={lead.id} className="border-b border-border hover:bg-muted/40 transition-colors">
                     <ChannelCell lead={lead} />
                     <td className="px-3 py-2.5"><ServiceBadge slug={lead.service_type} /></td>
-                    <td className="px-3 py-2.5 text-zinc-600 whitespace-nowrap">
+                    <td className="px-3 py-2.5 text-muted-foreground whitespace-nowrap">
                       {lead.subs_k != null ? `${lead.subs_k}K` : '—'}
                     </td>
                     <td className="px-2 py-2.5 text-center">
@@ -193,7 +193,7 @@ export default function LeadsTable() {
                         <Checkbox
                           checked={lead.thumbnail_sample ?? false}
                           onCheckedChange={() => toggleField(lead.id, 'thumbnail_sample', lead.thumbnail_sample ?? false)}
-                          className="data-[state=checked]:bg-zinc-800 data-[state=checked]:border-zinc-800"
+                          className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                         />
                       </div>
                     </td>
@@ -211,33 +211,33 @@ export default function LeadsTable() {
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-blue-400" />
-            <span className="text-xs font-medium text-zinc-500 uppercase tracking-wide">
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
               Outreach Pipeline — {outreach.length}
             </span>
           </div>
 
-          <div className="border border-zinc-200 rounded-lg overflow-x-auto bg-white">
+          <div className="border border-border rounded-lg overflow-x-auto bg-card">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-zinc-100 bg-zinc-50">
-                  <th className="text-left px-4 py-3 font-medium text-zinc-500 whitespace-nowrap w-48">Channel</th>
-                  <th className="text-left px-3 py-3 font-medium text-zinc-500 whitespace-nowrap">Service</th>
-                  <th className="text-left px-3 py-3 font-medium text-zinc-500 whitespace-nowrap">Subs</th>
+                <tr className="border-b border-border bg-muted/40">
+                  <th className="text-left px-4 py-3 font-medium text-muted-foreground whitespace-nowrap w-48">Channel</th>
+                  <th className="text-left px-3 py-3 font-medium text-muted-foreground whitespace-nowrap">Service</th>
+                  <th className="text-left px-3 py-3 font-medium text-muted-foreground whitespace-nowrap">Subs</th>
                   {OUTREACH_COLS.map(c => (
-                    <th key={c.field} className="px-2 py-3 font-medium text-zinc-500 whitespace-nowrap text-center">{c.label}</th>
+                    <th key={c.field} className="px-2 py-3 font-medium text-muted-foreground whitespace-nowrap text-center">{c.label}</th>
                   ))}
-                  <th className="px-3 py-3 font-medium text-zinc-500 text-right">Actions</th>
+                  <th className="px-3 py-3 font-medium text-muted-foreground text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {outreach.length === 0 && (
-                  <tr><td colSpan={3 + OUTREACH_COLS.length + 1} className="text-center py-6 text-zinc-400">No active outreach yet</td></tr>
+                  <tr><td colSpan={3 + OUTREACH_COLS.length + 1} className="text-center py-6 text-muted-foreground">No active outreach yet</td></tr>
                 )}
                 {outreach.map(lead => (
-                  <tr key={lead.id} className="border-b border-zinc-100 hover:bg-zinc-50 transition-colors">
+                  <tr key={lead.id} className="border-b border-border hover:bg-muted/40 transition-colors">
                     <ChannelCell lead={lead} />
                     <td className="px-3 py-2.5"><ServiceBadge slug={lead.service_type} /></td>
-                    <td className="px-3 py-2.5 text-zinc-600 whitespace-nowrap">
+                    <td className="px-3 py-2.5 text-muted-foreground whitespace-nowrap">
                       {lead.subs_k != null ? `${lead.subs_k}K` : '—'}
                     </td>
                     {OUTREACH_COLS.map(c => (
@@ -246,7 +246,7 @@ export default function LeadsTable() {
                           <Checkbox
                             checked={lead[c.field] as boolean}
                             onCheckedChange={() => toggleField(lead.id, c.field, lead[c.field] as boolean)}
-                            className="data-[state=checked]:bg-zinc-800 data-[state=checked]:border-zinc-800"
+                            className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                           />
                         </div>
                       </td>
@@ -260,7 +260,7 @@ export default function LeadsTable() {
         </div>
       )}
 
-      <div className="text-xs text-zinc-400">{leads.length} total lead{leads.length !== 1 ? 's' : ''}</div>
+      <div className="text-xs text-muted-foreground">{leads.length} total lead{leads.length !== 1 ? 's' : ''}</div>
 
       <LeadFormModal
         open={formOpen}

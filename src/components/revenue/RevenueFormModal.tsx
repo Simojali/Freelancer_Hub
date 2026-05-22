@@ -81,11 +81,11 @@ export default function RevenueFormModal({ open, onClose, onSave, revenue, prefi
         </DialogHeader>
         <div className="space-y-3 mt-2">
           <div>
-            <label className="text-xs text-zinc-500 mb-1 block">Amount ($) *</label>
+            <label className="text-xs text-muted-foreground mb-1 block">Amount ($) *</label>
             <Input type="number" value={form.amount ?? ''} onChange={e => set('amount', e.target.value ? Number(e.target.value) : undefined)} placeholder="150" />
           </div>
           <div>
-            <label className="text-xs text-zinc-500 mb-1 block">Client</label>
+            <label className="text-xs text-muted-foreground mb-1 block">Client</label>
             <Select
               value={form.client_id ?? 'none'}
               onValueChange={v => {
@@ -109,7 +109,7 @@ export default function RevenueFormModal({ open, onClose, onSave, revenue, prefi
             </Select>
           </div>
           <div>
-            <label className="text-xs text-zinc-500 mb-1 block">Project (optional)</label>
+            <label className="text-xs text-muted-foreground mb-1 block">Project (optional)</label>
             <Select
               value={form.project_id ?? 'none'}
               onValueChange={v => set('project_id', v === 'none' ? null : v)}
@@ -130,7 +130,7 @@ export default function RevenueFormModal({ open, onClose, onSave, revenue, prefi
             </Select>
           </div>
           <div>
-            <label className="text-xs text-zinc-500 mb-1 block">Service</label>
+            <label className="text-xs text-muted-foreground mb-1 block">Service</label>
             <Select value={form.service_type ?? ''} onValueChange={v => set('service_type', v)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -141,7 +141,7 @@ export default function RevenueFormModal({ open, onClose, onSave, revenue, prefi
             </Select>
           </div>
           <div>
-            <label className="text-xs text-zinc-500 mb-1 block">Status</label>
+            <label className="text-xs text-muted-foreground mb-1 block">Status</label>
             <Select value={form.status ?? 'pending'} onValueChange={v => set('status', v)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -151,11 +151,11 @@ export default function RevenueFormModal({ open, onClose, onSave, revenue, prefi
             </Select>
           </div>
           <div>
-            <label className="text-xs text-zinc-500 mb-1 block">Date</label>
+            <label className="text-xs text-muted-foreground mb-1 block">Date</label>
             <Input type="date" value={form.payment_date ?? today} onChange={e => set('payment_date', e.target.value)} />
           </div>
           <div>
-            <label className="text-xs text-zinc-500 mb-1 block">Description</label>
+            <label className="text-xs text-muted-foreground mb-1 block">Description</label>
             <Input value={form.description ?? ''} onChange={e => set('description', e.target.value)} placeholder="e.g. April thumbnails x5" />
           </div>
         </div>

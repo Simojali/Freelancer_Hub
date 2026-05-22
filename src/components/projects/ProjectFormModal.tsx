@@ -166,14 +166,14 @@ export default function ProjectFormModal({ open, onClose, onSave, project }: Pro
           {/* Type toggle — new projects only */}
           {isNew && (
             <div>
-              <label className="text-xs text-zinc-500 mb-1 block">Type</label>
-              <div className="flex rounded-md border border-zinc-200 overflow-hidden">
+              <label className="text-xs text-muted-foreground mb-1 block">Type</label>
+              <div className="flex rounded-md border border-border overflow-hidden">
                 {(['gig', 'package', 'retainer'] as ProjectType[]).map(t => (
                   <button
                     key={t}
                     type="button"
                     onClick={() => handleTypeChange(t)}
-                    className={`flex-1 py-1.5 text-sm font-medium transition-colors ${form.project_type === t ? 'bg-zinc-900 text-white' : 'bg-white text-zinc-500 hover:bg-zinc-50'}`}
+                    className={`flex-1 py-1.5 text-sm font-medium transition-colors ${form.project_type === t ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground hover:bg-muted/40'}`}
                   >
                     {t.charAt(0).toUpperCase() + t.slice(1)}
                   </button>
@@ -184,11 +184,11 @@ export default function ProjectFormModal({ open, onClose, onSave, project }: Pro
 
           {/* Common fields */}
           <div>
-            <label className="text-xs text-zinc-500 mb-1 block">Name *</label>
+            <label className="text-xs text-muted-foreground mb-1 block">Name *</label>
             <Input value={form.name ?? ''} onChange={e => set('name', e.target.value)} placeholder={isPackage ? 'e.g. 12 Thumbnails' : 'e.g. Channel banner'} />
           </div>
           <div>
-            <label className="text-xs text-zinc-500 mb-1 block">Client</label>
+            <label className="text-xs text-muted-foreground mb-1 block">Client</label>
             <Select value={form.client_id ?? 'none'} onValueChange={v => set('client_id', v === 'none' ? undefined : v)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select client">
@@ -206,7 +206,7 @@ export default function ProjectFormModal({ open, onClose, onSave, project }: Pro
             </Select>
           </div>
           <div>
-            <label className="text-xs text-zinc-500 mb-1 block">Service</label>
+            <label className="text-xs text-muted-foreground mb-1 block">Service</label>
             <Select value={form.service_type ?? ''} onValueChange={v => set('service_type', v)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -217,14 +217,14 @@ export default function ProjectFormModal({ open, onClose, onSave, project }: Pro
             </Select>
           </div>
           <div>
-            <label className="text-xs text-zinc-500 mb-1 block">Price ($)</label>
+            <label className="text-xs text-muted-foreground mb-1 block">Price ($)</label>
             <Input type="number" value={form.price ?? ''} onChange={e => set('price', e.target.value ? Number(e.target.value) : undefined)} placeholder="150" />
           </div>
 
           {/* Package-only */}
           {isPackage && (
             <div>
-              <label className="text-xs text-zinc-500 mb-1 block">Total Units *</label>
+              <label className="text-xs text-muted-foreground mb-1 block">Total Units *</label>
               <Input type="number" value={form.total_units ?? ''} onChange={e => set('total_units', e.target.value ? Number(e.target.value) : undefined)} placeholder="12" />
             </div>
           )}
@@ -232,7 +232,7 @@ export default function ProjectFormModal({ open, onClose, onSave, project }: Pro
           {/* Retainer-only */}
           {form.project_type === 'retainer' && (
             <div>
-              <label className="text-xs text-zinc-500 mb-1 block">Rate per unit *</label>
+              <label className="text-xs text-muted-foreground mb-1 block">Rate per unit *</label>
               <Input
                 type="number"
                 value={form.unit_price ?? ''}
@@ -246,7 +246,7 @@ export default function ProjectFormModal({ open, onClose, onSave, project }: Pro
           {isGig && (
             <>
               <div>
-                <label className="text-xs text-zinc-500 mb-1 block">Status</label>
+                <label className="text-xs text-muted-foreground mb-1 block">Status</label>
                 <Select value={form.status ?? 'pending'} onValueChange={v => set('status', v)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -257,7 +257,7 @@ export default function ProjectFormModal({ open, onClose, onSave, project }: Pro
                 </Select>
               </div>
               <div>
-                <label className="text-xs text-zinc-500 mb-1 block">Due Date (optional)</label>
+                <label className="text-xs text-muted-foreground mb-1 block">Due Date (optional)</label>
                 <Input
                   type="date"
                   value={form.due_date ?? ''}
@@ -268,29 +268,29 @@ export default function ProjectFormModal({ open, onClose, onSave, project }: Pro
           )}
 
           <div>
-            <label className="text-xs text-zinc-500 mb-1 block">Notes</label>
+            <label className="text-xs text-muted-foreground mb-1 block">Notes</label>
             <Input value={form.notes ?? ''} onChange={e => set('notes', e.target.value)} placeholder="Any notes..." />
           </div>
 
           {/* Log Payment toggle — shown for new projects, or when editing a
               gig into 'done' state that isn't fully paid yet. */}
           {offerPayment && (
-            <div className="border-t border-zinc-100 pt-3 space-y-3">
+            <div className="border-t border-border pt-3 space-y-3">
               <button
                 type="button"
                 onClick={handleTogglePayment}
                 className="flex items-center gap-2 w-full text-left"
               >
-                <div className={`w-8 h-4 rounded-full transition-colors shrink-0 ${logPayment ? 'bg-zinc-900' : 'bg-zinc-200'}`}>
-                  <div className={`w-3 h-3 rounded-full bg-white m-0.5 transition-transform ${logPayment ? 'translate-x-4' : 'translate-x-0'}`} />
+                <div className={`w-8 h-4 rounded-full transition-colors shrink-0 ${logPayment ? 'bg-primary' : 'bg-muted'}`}>
+                  <div className={`w-3 h-3 rounded-full bg-card m-0.5 transition-transform ${logPayment ? 'translate-x-4' : 'translate-x-0'}`} />
                 </div>
-                <span className="text-sm text-zinc-600">{paymentLabel}</span>
+                <span className="text-sm text-muted-foreground">{paymentLabel}</span>
               </button>
 
               {logPayment && (
                 <div className="space-y-3 pl-1">
                   <div>
-                    <label className="text-xs text-zinc-500 mb-1 block">Amount ($) *</label>
+                    <label className="text-xs text-muted-foreground mb-1 block">Amount ($) *</label>
                     <Input
                       type="number"
                       value={paymentAmount ?? ''}
@@ -300,7 +300,7 @@ export default function ProjectFormModal({ open, onClose, onSave, project }: Pro
                   </div>
                   <div className="flex gap-3">
                     <div className="flex-1">
-                      <label className="text-xs text-zinc-500 mb-1 block">Status</label>
+                      <label className="text-xs text-muted-foreground mb-1 block">Status</label>
                       <Select value={paymentStatus} onValueChange={v => setPaymentStatus(v as PaymentStatus)}>
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>
@@ -310,7 +310,7 @@ export default function ProjectFormModal({ open, onClose, onSave, project }: Pro
                       </Select>
                     </div>
                     <div className="flex-1">
-                      <label className="text-xs text-zinc-500 mb-1 block">Date</label>
+                      <label className="text-xs text-muted-foreground mb-1 block">Date</label>
                       <Input type="date" value={paymentDate} onChange={e => setPaymentDate(e.target.value)} />
                     </div>
                   </div>

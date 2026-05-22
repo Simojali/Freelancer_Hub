@@ -34,8 +34,8 @@ export default function RevenueTable() {
 
       {/* Summary row */}
       <div className="flex items-center gap-6 text-sm">
-        <div><span className="text-zinc-500">Total Paid: </span><span className="font-semibold text-zinc-900">{formatCurrency(totalPaid, currency)}</span></div>
-        <div><span className="text-zinc-500">Pending: </span><span className="font-semibold text-amber-600">{formatCurrency(totalPending, currency)}</span></div>
+        <div><span className="text-muted-foreground">Total Paid: </span><span className="font-semibold text-foreground">{formatCurrency(totalPaid, currency)}</span></div>
+        <div><span className="text-muted-foreground">Pending: </span><span className="font-semibold text-amber-600">{formatCurrency(totalPending, currency)}</span></div>
         <div className="ml-auto">
           <Button size="sm" onClick={() => { setEditItem(null); setFormOpen(true) }}>
             <Plus className="w-4 h-4 mr-1" /> Log Payment
@@ -43,23 +43,23 @@ export default function RevenueTable() {
         </div>
       </div>
 
-      <div className="border border-zinc-200 rounded-lg overflow-hidden bg-white">
+      <div className="border border-border rounded-lg overflow-hidden bg-card">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-zinc-100 bg-zinc-50">
-              <th className="text-left px-4 py-3 font-medium text-zinc-500">Date</th>
-              <th className="text-left px-3 py-3 font-medium text-zinc-500">Client</th>
-              <th className="text-left px-3 py-3 font-medium text-zinc-500">Project</th>
-              <th className="text-left px-3 py-3 font-medium text-zinc-500">Service</th>
-              <th className="text-left px-3 py-3 font-medium text-zinc-500">Description</th>
-              <th className="text-right px-3 py-3 font-medium text-zinc-500">Amount</th>
-              <th className="text-left px-3 py-3 font-medium text-zinc-500">Status</th>
-              <th className="px-3 py-3 font-medium text-zinc-500 text-right">Actions</th>
+            <tr className="border-b border-border bg-muted/40">
+              <th className="text-left px-4 py-3 font-medium text-muted-foreground">Date</th>
+              <th className="text-left px-3 py-3 font-medium text-muted-foreground">Client</th>
+              <th className="text-left px-3 py-3 font-medium text-muted-foreground">Project</th>
+              <th className="text-left px-3 py-3 font-medium text-muted-foreground">Service</th>
+              <th className="text-left px-3 py-3 font-medium text-muted-foreground">Description</th>
+              <th className="text-right px-3 py-3 font-medium text-muted-foreground">Amount</th>
+              <th className="text-left px-3 py-3 font-medium text-muted-foreground">Status</th>
+              <th className="px-3 py-3 font-medium text-muted-foreground text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
             {isLoading && (
-              <tr><td colSpan={8} className="text-center py-8 text-zinc-400">Loading...</td></tr>
+              <tr><td colSpan={8} className="text-center py-8 text-muted-foreground">Loading...</td></tr>
             )}
             {!isLoading && revenue.length === 0 && (
               <tr>
@@ -74,17 +74,17 @@ export default function RevenueTable() {
               </tr>
             )}
             {revenue.map(item => (
-              <tr key={item.id} className="border-b border-zinc-100 hover:bg-zinc-50 transition-colors">
-                <td className="px-4 py-2.5 text-zinc-600 whitespace-nowrap">{formatDate(item.payment_date)}</td>
-                <td className="px-3 py-2.5 text-zinc-700">{item.clients?.client_name ?? '—'}</td>
+              <tr key={item.id} className="border-b border-border hover:bg-muted/40 transition-colors">
+                <td className="px-4 py-2.5 text-muted-foreground whitespace-nowrap">{formatDate(item.payment_date)}</td>
+                <td className="px-3 py-2.5 text-foreground">{item.clients?.client_name ?? '—'}</td>
                 <td className="px-3 py-2.5">
                   {item.projects?.name
-                    ? <span className="text-xs px-2 py-0.5 rounded-full border font-medium bg-zinc-50 text-zinc-600 border-zinc-200">{item.projects.name}</span>
-                    : <span className="text-zinc-400">—</span>}
+                    ? <span className="text-xs px-2 py-0.5 rounded-full border font-medium bg-muted/40 text-muted-foreground border-border">{item.projects.name}</span>
+                    : <span className="text-muted-foreground">—</span>}
                 </td>
                 <td className="px-3 py-2.5"><ServiceBadge slug={item.service_type} /></td>
-                <td className="px-3 py-2.5 text-zinc-500 max-w-[200px] truncate">{item.description ?? '—'}</td>
-                <td className="px-3 py-2.5 text-right font-medium text-zinc-900">{formatCurrency(Number(item.amount), currency)}</td>
+                <td className="px-3 py-2.5 text-muted-foreground max-w-[200px] truncate">{item.description ?? '—'}</td>
+                <td className="px-3 py-2.5 text-right font-medium text-foreground">{formatCurrency(Number(item.amount), currency)}</td>
                 <td className="px-3 py-2.5"><PaymentStatusBadge status={item.status} /></td>
                 <td className="px-3 py-2.5">
                   <div className="flex justify-end gap-1">

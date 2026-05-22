@@ -90,8 +90,8 @@ export default function DateRangePicker({ dateRange, from, to, onPreset, onFromC
         className={cn(
           'flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border text-xs transition-colors',
           dateRange !== 'all'
-            ? 'border-zinc-400 text-zinc-900 bg-zinc-50'
-            : 'border-zinc-200 text-zinc-500 hover:bg-zinc-50'
+            ? 'border-border text-foreground bg-muted/40'
+            : 'border-border text-muted-foreground hover:bg-muted/40'
         )}
       >
         <Calendar className="w-3 h-3" />
@@ -100,7 +100,7 @@ export default function DateRangePicker({ dateRange, from, to, onPreset, onFromC
 
       <PopoverPrimitive.Portal>
         <PopoverPrimitive.Positioner sideOffset={6} className="z-50">
-          <PopoverPrimitive.Popup className="bg-white border border-zinc-200 rounded-lg shadow-lg w-72 p-3 outline-none">
+          <PopoverPrimitive.Popup className="bg-card border border-border rounded-lg shadow-lg w-72 p-3 outline-none">
             {/* Preset grid (2 columns) */}
             <div className="grid grid-cols-2 gap-1.5">
               {PRESETS.map(p => {
@@ -113,8 +113,8 @@ export default function DateRangePicker({ dateRange, from, to, onPreset, onFromC
                     className={cn(
                       'text-xs px-3 py-2 rounded-md border text-left transition-colors',
                       active
-                        ? 'bg-zinc-900 text-white border-zinc-900'
-                        : 'border-zinc-200 text-zinc-700 hover:bg-zinc-50'
+                        ? 'bg-primary text-primary-foreground border-primary'
+                        : 'border-border text-foreground hover:bg-muted/40'
                     )}
                   >
                     {p.label}
@@ -124,8 +124,8 @@ export default function DateRangePicker({ dateRange, from, to, onPreset, onFromC
             </div>
 
             {/* Custom range */}
-            <div className="mt-4 pt-3 border-t border-zinc-100">
-              <div className="text-[10px] font-medium text-zinc-400 uppercase tracking-wide mb-2">
+            <div className="mt-4 pt-3 border-t border-border">
+              <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide mb-2">
                 Custom range
               </div>
               <div className="flex items-center gap-1.5">
@@ -136,7 +136,7 @@ export default function DateRangePicker({ dateRange, from, to, onPreset, onFromC
                   className="h-8 text-xs flex-1"
                   aria-label="From date"
                 />
-                <span className="text-zinc-400 text-xs">→</span>
+                <span className="text-muted-foreground text-xs">→</span>
                 <Input
                   type="date"
                   value={draftTo}
@@ -148,11 +148,11 @@ export default function DateRangePicker({ dateRange, from, to, onPreset, onFromC
             </div>
 
             {/* Footer */}
-            <div className="flex items-center justify-between mt-4 pt-3 border-t border-zinc-100">
+            <div className="flex items-center justify-between mt-4 pt-3 border-t border-border">
               <button
                 type="button"
                 onClick={handleClear}
-                className="text-xs text-zinc-400 hover:text-zinc-700 transition-colors"
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
               >
                 Clear
               </button>

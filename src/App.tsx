@@ -60,7 +60,7 @@ function DashboardPage() {
 function LeadsPage() {
   return (
     <div>
-      <h1 className="text-xl font-semibold text-zinc-900 mb-6">Leads</h1>
+      <h1 className="text-xl font-semibold text-foreground mb-6">Leads</h1>
       <LeadsTable />
     </div>
   )
@@ -69,17 +69,17 @@ function LeadsPage() {
 function ClientsPage() {
   return (
     <div>
-      <h1 className="text-xl font-semibold text-zinc-900 mb-6">Clients</h1>
+      <h1 className="text-xl font-semibold text-foreground mb-6">Clients</h1>
       <ClientGrid />
     </div>
   )
 }
 
 const TABS: { key: TabType; label: string; color: string; activeClass: string }[] = [
-  { key: 'all',      label: 'All',       color: 'bg-zinc-400',   activeClass: 'border-zinc-800 text-zinc-900' },
+  { key: 'all',      label: 'All',       color: 'bg-muted-foreground/50',   activeClass: 'border-primary text-foreground' },
   { key: 'retainer', label: 'Retainers', color: 'bg-teal-400',   activeClass: 'border-teal-500 text-teal-700' },
   { key: 'package',  label: 'Packages',  color: 'bg-violet-400', activeClass: 'border-violet-500 text-violet-700' },
-  { key: 'gig',      label: 'Gigs',      color: 'bg-zinc-300',   activeClass: 'border-zinc-500 text-zinc-700' },
+  { key: 'gig',      label: 'Gigs',      color: 'bg-muted',   activeClass: 'border-border text-foreground' },
 ]
 
 const SORT_OPTIONS: { value: SortKey; label: string }[] = [
@@ -217,12 +217,12 @@ function ProjectsPage() {
     <div className="space-y-4">
       {/* Title row — wraps gracefully on narrow screens */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-xl font-semibold text-zinc-900 shrink-0">Projects</h1>
+        <h1 className="text-xl font-semibold text-foreground shrink-0">Projects</h1>
 
         <div className="flex flex-wrap items-center gap-2">
           {/* Search */}
           <div className="relative">
-            <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+            <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
             <Input
               value={search}
               onChange={e => setSearch(e.target.value)}
@@ -262,7 +262,7 @@ function ProjectsPage() {
               className={cn('flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border text-xs transition-colors',
                 overdueOnly
                   ? 'bg-red-600 text-white border-red-600'
-                  : 'border-zinc-200 text-zinc-500 hover:bg-zinc-50')}
+                  : 'border-border text-muted-foreground hover:bg-muted/40')}
             >
               <AlertTriangle className="w-3 h-3" />
               Overdue
@@ -277,24 +277,24 @@ function ProjectsPage() {
               className={cn('flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border text-xs transition-colors',
                 unpaidOnly
                   ? 'bg-amber-500 text-white border-amber-500'
-                  : 'border-zinc-200 text-zinc-500 hover:bg-zinc-50')}
+                  : 'border-border text-muted-foreground hover:bg-muted/40')}
             >
               <Wallet className="w-3 h-3" />
               Unpaid
-              <span className={cn('px-1 rounded-full text-[10px]', unpaidOnly ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-700')}>
+              <span className={cn('px-1 rounded-full text-[10px]', unpaidOnly ? 'bg-card/20 text-white' : 'bg-amber-100 text-amber-700')}>
                 {unpaidCount}
               </span>
             </button>
           )}
 
           {/* Group by */}
-          <div className="flex items-center rounded-md border border-zinc-200 overflow-hidden text-xs">
+          <div className="flex items-center rounded-md border border-border overflow-hidden text-xs">
             <button type="button" onClick={() => setGroupBy('type')}
-              className={cn('flex items-center gap-1.5 px-2.5 py-1.5 transition-colors', groupBy === 'type' ? 'bg-zinc-900 text-white' : 'text-zinc-500 hover:bg-zinc-50')}>
+              className={cn('flex items-center gap-1.5 px-2.5 py-1.5 transition-colors', groupBy === 'type' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted/40')}>
               <Layers className="w-3 h-3" /> Type
             </button>
             <button type="button" onClick={() => setGroupBy('client')}
-              className={cn('flex items-center gap-1.5 px-2.5 py-1.5 transition-colors border-l border-zinc-200', groupBy === 'client' ? 'bg-zinc-900 text-white' : 'text-zinc-500 hover:bg-zinc-50')}>
+              className={cn('flex items-center gap-1.5 px-2.5 py-1.5 transition-colors border-l border-border', groupBy === 'client' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted/40')}>
               <Users className="w-3 h-3" /> Client
             </button>
           </div>
@@ -303,10 +303,10 @@ function ProjectsPage() {
           {completedCount > 0 && (
             <button type="button" onClick={() => setShowCompleted(v => !v)}
               className={cn('flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border text-xs transition-colors',
-                showCompleted ? 'bg-zinc-900 text-white border-zinc-900' : 'border-zinc-200 text-zinc-500 hover:bg-zinc-50')}>
+                showCompleted ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:bg-muted/40')}>
               <CheckCheck className="w-3 h-3" />
               Completed
-              <span className={cn('px-1 rounded-full', showCompleted ? 'bg-white/20 text-white' : 'bg-zinc-100 text-zinc-500')}>
+              <span className={cn('px-1 rounded-full', showCompleted ? 'bg-card/20 text-white' : 'bg-muted text-muted-foreground')}>
                 {completedCount}
               </span>
             </button>
@@ -330,15 +330,15 @@ function ProjectsPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center border-b border-zinc-200 overflow-x-auto">
+      <div className="flex items-center border-b border-border overflow-x-auto">
         {TABS.map(tab => (
           <button key={tab.key} type="button" onClick={() => setActiveTab(tab.key)}
             className={cn('flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap',
-              activeTab === tab.key ? tab.activeClass : 'border-transparent text-zinc-400 hover:text-zinc-600')}>
+              activeTab === tab.key ? tab.activeClass : 'border-transparent text-muted-foreground hover:text-muted-foreground')}>
             {tab.key !== 'all' && <span className={cn('w-2 h-2 rounded-full shrink-0', tab.color)} />}
             {tab.label}
             <span className={cn('text-xs px-1.5 py-0.5 rounded-full font-normal',
-              activeTab === tab.key ? 'bg-zinc-100 text-zinc-600' : 'text-zinc-400')}>
+              activeTab === tab.key ? 'bg-muted text-muted-foreground' : 'text-muted-foreground')}>
               {tabCounts[tab.key]}
             </span>
           </button>
@@ -366,7 +366,7 @@ function ProjectsPage() {
 function RevenuePage() {
   return (
     <div>
-      <h1 className="text-xl font-semibold text-zinc-900 mb-6">Revenue</h1>
+      <h1 className="text-xl font-semibold text-foreground mb-6">Revenue</h1>
       <RevenueTable />
     </div>
   )
@@ -375,7 +375,7 @@ function RevenuePage() {
 function SettingsPageWrapper() {
   return (
     <div>
-      <h1 className="text-xl font-semibold text-zinc-900 mb-6">Settings</h1>
+      <h1 className="text-xl font-semibold text-foreground mb-6">Settings</h1>
       <SettingsPage />
     </div>
   )
