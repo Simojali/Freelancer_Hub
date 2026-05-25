@@ -26,3 +26,7 @@ dist-ssr
 .env
 
 .vercel
+
+# Local DB exports — contain real client/lead/revenue data, never commit
+migration/data*.json
+migration/data*.sql

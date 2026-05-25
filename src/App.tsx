@@ -184,7 +184,11 @@ function ProjectsPage() {
     if (unpaidOnly && !isGigUnpaid(p)) return false
     return true
   })
-  const doneGigsCount = visibleForCounts.filter(p => p.project_type === 'gig' && p.status === 'done').length
+  // Done gigs + done packages both count as "completed" work. Retainers stay
+  // out of this bucket — they're ongoing by nature.
+  const doneProjectsCount = visibleForCounts.filter(p =>
+    (p.project_type === 'gig' || p.project_type === 'package') && p.status === 'done'
+  ).length
   // Cycles also count as "completed" — surface them under the same toggle so
   // the user has one place to find historical work. Filter cycles by service +
   // search + date so the badge only counts what the user would actually see.
@@ -199,13 +203,15 @@ function ProjectsPage() {
     if (dateTo && date && date > dateTo) return false
     return true
   })
-  const completedCount = doneGigsCount + visibleCyclesForCount.length
+  const completedCount = doneProjectsCount + visibleCyclesForCount.length
   // Count unpaid gigs across the *unfiltered-by-unpaid* pool so the badge
   // still reflects real totals even while the user is toggling it on/off.
   const unpaidCount = projects.filter(isGigUnpaid).length
   const countablePool = showCompleted
     ? visibleForCounts
-    : visibleForCounts.filter(p => !(p.project_type === 'gig' && p.status === 'done'))
+    : visibleForCounts.filter(p =>
+        !((p.project_type === 'gig' || p.project_type === 'package') && p.status === 'done')
+      )
   const tabCounts = {
     all:      countablePool.length,
     retainer: countablePool.filter(p => p.project_type === 'retainer').length,

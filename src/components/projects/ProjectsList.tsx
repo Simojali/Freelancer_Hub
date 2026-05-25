@@ -144,7 +144,9 @@ export default function ProjectsList({
       // those gigs, even if "Show completed" is off.
       if (unpaidOnly) {
         if (!isGigUnpaid(p)) continue
-      } else if (!showCompleted && p.project_type === 'gig' && p.status === 'done') {
+      } else if (!showCompleted && p.status === 'done' && (p.project_type === 'gig' || p.project_type === 'package')) {
+        // Hide done gigs *and* done packages. Retainers are ongoing by nature,
+        // so we don't bucket them with completed work even if status='done'.
         continue
       }
       if (activeTab !== 'all' && p.project_type !== activeTab) continue
@@ -284,6 +286,7 @@ export default function ProjectsList({
   }
 
   async function handleRenewConfirm(project: Project) {
+    // Clone the package onto a fresh slate...
     await createProject({
       name: project.name + ' (Renewed)',
       client_id: project.client_id,
@@ -293,6 +296,9 @@ export default function ProjectsList({
       total_units: project.total_units,
       notes: project.notes,
     })
+    // ...and archive the original. Without this it stays in the active list
+    // at 0/N credits forever and the user has to manually clean it up.
+    await updateProject(project.id, { status: 'done' })
   }
 
   return (
