@@ -13,9 +13,10 @@ export type AnalyticsPeriod =
   | 'ytd'
   | 'last_year'
   | 'all_time'
+  | 'custom'
 
-/** Grouped for the picker — rolling windows / calendar windows / all time. */
-export const ANALYTICS_PERIODS: { value: AnalyticsPeriod; label: string; group: 'rolling' | 'calendar' | 'all' }[] = [
+/** Grouped for the picker — rolling windows / calendar windows / all time / custom. */
+export const ANALYTICS_PERIODS: { value: AnalyticsPeriod; label: string; group: 'rolling' | 'calendar' | 'all' | 'custom' }[] = [
   // Calendar windows (start at a real boundary)
   { value: 'this_month',     label: 'This month',     group: 'calendar' },
   { value: 'last_month',     label: 'Last month',     group: 'calendar' },
@@ -29,6 +30,8 @@ export const ANALYTICS_PERIODS: { value: AnalyticsPeriod; label: string; group: 
   { value: 'last_12_months', label: 'Last 12 months', group: 'rolling' },
   // Everything
   { value: 'all_time',       label: 'All time',       group: 'all' },
+  // User-defined window (date inputs in the picker)
+  { value: 'custom',         label: 'Custom',         group: 'custom' },
 ]
 
 export interface AnalyticsData {
@@ -90,13 +93,22 @@ interface RawRevenue {
   clients: any
 }
 
-function periodBounds(period: AnalyticsPeriod): { from: string | null; to: string } {
+function periodBounds(
+  period: AnalyticsPeriod,
+  customFrom?: string,
+  customTo?: string,
+): { from: string | null; to: string } {
   const now = new Date()
   const today = formatLocalDate(now)
   const ymd = (d: Date) => formatLocalDate(d)
   // Quarter math: months 0-2 = Q1, 3-5 = Q2, 6-8 = Q3, 9-11 = Q4.
   const qIdx = Math.floor(now.getMonth() / 3)
   switch (period) {
+    case 'custom':
+      // Defensive: if the user hasn't filled both inputs yet, fall back to
+      // today as the upper bound so we still return a valid range instead of
+      // crashing the hook. Empty `from` is treated like all-time (null).
+      return { from: customFrom || null, to: customTo || today }
     case 'this_month':
       return { from: ymd(new Date(now.getFullYear(), now.getMonth(), 1)), to: today }
     case 'last_month': {
@@ -203,11 +215,13 @@ function bucketLabel(key: string, granularity: Granularity): string {
   return granularity === 'daily' ? dayLabel(key) : monthLabel(key)
 }
 
-export function useAnalytics(period: AnalyticsPeriod) {
+export function useAnalytics(period: AnalyticsPeriod, customFrom?: string, customTo?: string) {
   const { data, error, isLoading } = useSWR<AnalyticsData>(
-    ['analytics', period],
+    // Custom dates are part of the SWR key so changing them retriggers the fetch.
+    // For non-custom periods they're effectively ignored, but harmless in the key.
+    ['analytics', period, period === 'custom' ? customFrom ?? '' : '', period === 'custom' ? customTo ?? '' : ''],
     async () => {
-      const { from, to } = periodBounds(period)
+      const { from, to } = periodBounds(period, customFrom, customTo)
 
       // Two parallel fetches: the period itself + the same range one year
       // earlier for YoY comparison. For 'all_time' we skip the YoY query.

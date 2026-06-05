@@ -15,12 +15,29 @@ const FALLBACK_COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f97316', '#eab308', 
 
 export default function AnalyticsPage() {
   const [period, setPeriod] = useState<AnalyticsPeriod>('last_12_months')
-  const { data, isLoading } = useAnalytics(period)
+  const [customFrom, setCustomFrom] = useState<string | undefined>(undefined)
+  const [customTo, setCustomTo]     = useState<string | undefined>(undefined)
+  const { data, isLoading } = useAnalytics(period, customFrom, customTo)
   const { services } = useServices()
   const { currency } = useSettings()
   const navigate = useNavigate()
 
-  const periodLabel = ANALYTICS_PERIODS.find(p => p.value === period)?.label ?? ''
+  // Picker hands back the next period + custom bounds in one call so the
+  // three pieces of state stay in sync.
+  function handlePeriodChange(next: AnalyticsPeriod, from?: string, to?: string) {
+    setPeriod(next)
+    if (next === 'custom') {
+      setCustomFrom(from)
+      setCustomTo(to)
+    }
+  }
+
+  // Show the custom range in the same place as the preset label (KPI subtitles
+  // currently read this), so "Best month" / "Avg per month" etc. still display
+  // something meaningful when on a custom range.
+  const periodLabel = period === 'custom'
+    ? [customFrom, customTo].filter(Boolean).join(' → ') || 'Custom range'
+    : ANALYTICS_PERIODS.find(p => p.value === period)?.label ?? ''
   const serviceMeta = (slug: string) => services.find(s => s.slug === slug)
   // Adapt "month" / "day" copy based on the chart granularity the hook chose.
   const granularity = data?.totals.granularity ?? 'monthly'
@@ -31,7 +48,12 @@ export default function AnalyticsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-xl font-semibold text-foreground">Analytics</h1>
-        <AnalyticsPeriodPicker period={period} onChange={setPeriod} />
+        <AnalyticsPeriodPicker
+          period={period}
+          customFrom={customFrom}
+          customTo={customTo}
+          onChange={handlePeriodChange}
+        />
       </div>
 
       {isLoading || !data ? (
