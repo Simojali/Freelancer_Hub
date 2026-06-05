@@ -139,17 +139,22 @@ export default function QuickLogModal({ open, onClose, onViewAll }: Props) {
                 />
               )}
 
-              {/* Recent deliveries — last 5 most-recent + see-all CTA */}
+              {/* Planning + recent deliveries. DeliveryList renders its own
+                  "Up next" + "Delivered" subheadings — we only need a small
+                  count line here so the modal's compact context-card vibe
+                  stays intact. */}
               {selectedProject && (
                 <div className="border-t border-border pt-3 mt-1">
-                  <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">
-                    {projectDeliveries.length === 0
-                      ? 'No deliveries yet'
-                      : projectDeliveries.length > 5
-                        ? `Recent — showing 5 of ${projectDeliveries.length}`
-                        : `${projectDeliveries.length} deliver${projectDeliveries.length !== 1 ? 'ies' : 'y'}`}
-                  </div>
-                  <DeliveryList projectId={selectedProject.id} limit={5} hideHeader enablePlanning={false} />
+                  {projectDeliveries.length > 0 && (
+                    <div className="flex items-center justify-end mb-1.5">
+                      <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                        {projectDeliveries.length > 5
+                          ? `Showing 5 of ${projectDeliveries.length}`
+                          : `${projectDeliveries.length} deliver${projectDeliveries.length !== 1 ? 'ies' : 'y'}`}
+                      </div>
+                    </div>
+                  )}
+                  <DeliveryList projectId={selectedProject.id} limit={5} hideHeader />
                   {projectDeliveries.length > 0 && (
                     <Button
                       type="button"
