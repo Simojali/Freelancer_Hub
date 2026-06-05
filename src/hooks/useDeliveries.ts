@@ -1,7 +1,19 @@
-import useSWR from 'swr'
+import useSWR, { mutate as globalMutate } from 'swr'
 import type { Delivery, DeliveryStatus } from '@/lib/types'
 import { supabase } from '@/lib/supabase'
 import { runMutation } from '@/lib/db'
+
+/**
+ * Refresh every cache that depends on delivery state. Called after any
+ * mutation here so the dashboard's Up Next card, project owed/credit
+ * badges, and analytics totals stay in sync — SWR pattern-matches across
+ * keys so we hit every per-project deliveries cache too.
+ */
+function invalidateDeliveryDependents() {
+  globalMutate('planned-deliveries')
+  globalMutate('projects')
+  globalMutate('dashboard')
+}
 
 export function useDeliveries(projectId: string | null | undefined) {
   const key = projectId ? ['deliveries', projectId] : null
@@ -40,6 +52,7 @@ export function useDeliveries(projectId: string | null | undefined) {
       supabase.from('deliveries').insert({ ...body, project_id: projectId })
     )
     mutate()
+    invalidateDeliveryDependents()
     return res.ok
   }
 
@@ -63,6 +76,7 @@ export function useDeliveries(projectId: string | null | undefined) {
       supabase.from('deliveries').insert(rows)
     )
     mutate()
+    invalidateDeliveryDependents()
     return res.ok
   }
 
@@ -81,6 +95,7 @@ export function useDeliveries(projectId: string | null | undefined) {
       supabase.from('deliveries').update({ status: 'done', ...patch }).eq('id', id)
     , { onError: () => mutate(prev, false) })
     mutate()
+    invalidateDeliveryDependents()
     return res.ok
   }
 
@@ -94,6 +109,7 @@ export function useDeliveries(projectId: string | null | undefined) {
       supabase.from('deliveries').update(patch).eq('id', id)
     , { onError: () => mutate(prev, false) })
     mutate()
+    invalidateDeliveryDependents()
     return res.ok
   }
 
@@ -104,6 +120,7 @@ export function useDeliveries(projectId: string | null | undefined) {
       supabase.from('deliveries').delete().eq('id', id)
     , { onError: () => mutate(prev, false) })
     mutate()
+    invalidateDeliveryDependents()
     return res.ok
   }
 
@@ -123,6 +140,7 @@ export function useDeliveries(projectId: string | null | undefined) {
         .eq('status', 'done')
     )
     mutate()
+    invalidateDeliveryDependents()
     return res.ok
   }
 

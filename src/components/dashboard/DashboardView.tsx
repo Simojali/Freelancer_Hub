@@ -7,6 +7,7 @@ import EarningsKpiCard from './EarningsKpiCard'
 import QuickLogModal from './QuickLogModal'
 import LatestProjectsCard from './LatestProjectsCard'
 import RecentPaymentsCard from './RecentPaymentsCard'
+import UpNextCard from './UpNextCard'
 import { Button } from '@/components/ui/button'
 import { UserCheck, DollarSign, Wallet, Package as PackageIcon } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
@@ -83,9 +84,10 @@ export default function DashboardView() {
           <EarningsKpiCard earnings={kpis.earnings} currency={currency} />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <RecentPaymentsCard recentPayments={recentPayments} />
           <LatestProjectsCard recentProjects={recentProjects} />
+          <UpNextCard />
         </div>
       </div>
 
