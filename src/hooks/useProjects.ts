@@ -34,7 +34,22 @@ export function useProjects() {
   })
 
   async function createProject(body: Partial<Project>): Promise<string | null> {
-    const { delivery_count: _dc, clients: _cl, ...insertBody } = body as Project & { delivery_count?: number }
+    // Same defensive strip as updateProject — keeps callers free to pass full
+    // project objects without worrying about PostgREST rejecting embeds.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const {
+      delivery_count: _dc,
+      clients: _cl,
+      deliveries: _dv,
+      all_deliveries: _ad,
+      unbilled_deliveries: _ud,
+      paid_revenue: _pr,
+      paid_amount: _pa,
+      id: _id,
+      created_at: _ca,
+      updated_at: _ua,
+      ...insertBody
+    } = body as any
     const res = await runMutation('Create project', () =>
       supabase.from('projects').insert(insertBody).select('id').single()
     )
@@ -43,8 +58,24 @@ export function useProjects() {
   }
 
   async function updateProject(id: string, body: Partial<Project>): Promise<boolean> {
+    // Strip every field that exists only because the SELECT fetcher embeds or
+    // computes it. Sending these as columns makes PostgREST reject the UPDATE
+    // ("Could not find the X column of projects"). Newer PostgREST releases
+    // are strict about unknown fields where older ones silently ignored them.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { delivery_count: _dc, clients: _cl, deliveries: _dv, id: _id, created_at: _ca, updated_at: _ua, ...updateBody } = body as any
+    const {
+      delivery_count: _dc,
+      clients: _cl,
+      deliveries: _dv,
+      all_deliveries: _ad,
+      unbilled_deliveries: _ud,
+      paid_revenue: _pr,
+      paid_amount: _pa,
+      id: _id,
+      created_at: _ca,
+      updated_at: _ua,
+      ...updateBody
+    } = body as any
     const prev = data
     mutate(projects => projects?.map(p => p.id === id ? { ...p, ...body } : p), false)
     const res = await runMutation('Update project', () =>
