@@ -254,8 +254,11 @@ export function useAnalytics(period: AnalyticsPeriod, customFrom?: string, custo
       // Deliveries embed their parent project so we can compute value-per-delivery
       // for the Earnings section without an extra fetch.
       const deliveriesQuery = (() => {
+        // Only realised deliveries contribute to charts/totals/earnings.
+        // Planned deliveries are queued intent, not value created.
         let q = supabase.from('deliveries')
           .select('delivered_at, projects(project_type, price, unit_price, total_units)')
+          .eq('status', 'done')
           .lte('delivered_at', to)
         if (from) q = q.gte('delivered_at', from)
         return q

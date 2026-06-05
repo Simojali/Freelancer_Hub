@@ -26,7 +26,9 @@ export function useDashboard() {
       // paid revenue rows (needed to derive unpaid gig totals)
       supabase.from('projects')
         .select('id, client_id, name, project_type, status, price, unit_price, total_units, created_at, done_at, clients(client_name), unbilled:deliveries(count), all_deliveries:deliveries(count), paid_revenue:revenue(amount, status)')
+        .eq('unbilled.status', 'done')
         .eq('unbilled.billed', false)
+        .eq('all_deliveries.status', 'done')
         .eq('paid_revenue.status', 'paid')
         .order('created_at', { ascending: false }),
       supabase.from('clients').select('*', { count: 'exact', head: true }),
@@ -36,7 +38,9 @@ export function useDashboard() {
       // Recent delivered_at dates + project_id for the productivity KPI and
       // the "Today's Worth" earnings calculation — 60-day window covers all
       // displayed periods + their prior-period comparisons in one shot.
-      supabase.from('deliveries').select('delivered_at, project_id').gte('delivered_at', sixtyDaysAgo),
+      // Only DONE deliveries count toward output / earnings; planned ones are
+      // queued work, not realised value.
+      supabase.from('deliveries').select('delivered_at, project_id').eq('status', 'done').gte('delivered_at', sixtyDaysAgo),
     ])
 
     if (leadsRes.error) throw leadsRes.error

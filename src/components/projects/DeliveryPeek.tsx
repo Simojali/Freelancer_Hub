@@ -24,7 +24,14 @@ interface Props {
  */
 export default function DeliveryPeek({ projectId, limit = 5, onViewAll, disabled, disabledReason, hideQuantity }: Props) {
   const { deliveries } = useDeliveries(projectId)
-  const hasMore = deliveries.length > limit
+  // Peek summarises completed work; planning lives inside DeliveryList itself.
+  const done = deliveries.filter(d => d.status === 'done')
+  const hasMore = done.length > limit
+  const countLabel = done.length === 0
+    ? 'No deliveries yet'
+    : hasMore
+      ? `Showing ${Math.min(limit, done.length)} of ${done.length}`
+      : `${done.length} deliver${done.length !== 1 ? 'ies' : 'y'}`
 
   return (
     <div className="space-y-3">
@@ -36,23 +43,22 @@ export default function DeliveryPeek({ projectId, limit = 5, onViewAll, disabled
       />
 
       <div>
-        <div className="flex items-center justify-between mb-1.5">
-          <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-            {deliveries.length === 0
-              ? 'No deliveries yet'
-              : hasMore
-                ? `Recent — showing ${Math.min(limit, deliveries.length)} of ${deliveries.length}`
-                : `${deliveries.length} deliver${deliveries.length !== 1 ? 'ies' : 'y'}`}
+        <div className="flex items-center justify-end mb-1.5">
+          <div className="flex items-center gap-3 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+            <span>{countLabel}</span>
+            <button
+              type="button"
+              onClick={onViewAll}
+              className="hover:text-foreground inline-flex items-center gap-1 normal-case tracking-normal text-xs"
+            >
+              See all <ArrowRight className="w-3 h-3" />
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={onViewAll}
-            className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
-          >
-            See all <ArrowRight className="w-3 h-3" />
-          </button>
         </div>
 
+        {/* Planning enabled so the user can queue work right next to where
+            they log it — the expanded project row is the natural surface.
+            DeliveryList renders its own "Up next" + "Delivered" subheadings. */}
         <DeliveryList projectId={projectId} limit={limit} hideHeader />
       </div>
     </div>

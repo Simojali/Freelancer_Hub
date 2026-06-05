@@ -64,8 +64,10 @@ export default function QuickLogModal({ open, onClose, onViewAll }: Props) {
 
   // Fetch deliveries for the selected project so we can show the recent 5
   // and the total count for the "See all" button. SWR dedups with the same
-  // key elsewhere, so this is essentially free.
-  const { deliveries: projectDeliveries } = useDeliveries(selectedProject?.id)
+  // key elsewhere, so this is essentially free. Filter to done — the modal
+  // shows completed work; planned items belong in the project detail view.
+  const { deliveries: allDeliveries } = useDeliveries(selectedProject?.id)
+  const projectDeliveries = allDeliveries.filter(d => d.status === 'done')
 
   let context: React.ReactNode = null
   if (selectedProject) {
@@ -147,7 +149,7 @@ export default function QuickLogModal({ open, onClose, onViewAll }: Props) {
                         ? `Recent — showing 5 of ${projectDeliveries.length}`
                         : `${projectDeliveries.length} deliver${projectDeliveries.length !== 1 ? 'ies' : 'y'}`}
                   </div>
-                  <DeliveryList projectId={selectedProject.id} limit={5} hideHeader />
+                  <DeliveryList projectId={selectedProject.id} limit={5} hideHeader enablePlanning={false} />
                   {projectDeliveries.length > 0 && (
                     <Button
                       type="button"

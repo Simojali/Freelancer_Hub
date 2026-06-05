@@ -20,6 +20,11 @@ export function useClientProfile(id: string | undefined) {
         supabase
           .from('projects')
           .select('*, clients(client_name), all_deliveries:deliveries(count), unbilled_deliveries:deliveries(count), paid_revenue:revenue(amount, status)')
+          // Both delivery counts exclude planned (queued) rows — same rationale
+          // as useProjects: only realised work should affect package credits
+          // or retainer owed math.
+          .eq('all_deliveries.status', 'done')
+          .eq('unbilled_deliveries.status', 'done')
           .eq('unbilled_deliveries.billed', false)
           .eq('paid_revenue.status', 'paid')
           .eq('client_id', id!)

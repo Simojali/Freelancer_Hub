@@ -10,9 +10,15 @@ export function useProjects() {
     // doesn't include deliveries that have already been billed.
     // We also embed the paid revenue rows so gig "unpaid" state can be
     // derived: a done gig is unpaid while sum(paid revenue) < price.
+    // The two delivery embeds count only DONE deliveries — planned ones live in
+    // the Up-next queue and must never affect package credits or retainer
+    // owed math. Without the status filter the badges would change the moment
+    // a delivery is queued, before any actual work is done.
     const result = await supabase
       .from('projects')
       .select('*, clients(client_name), all_deliveries:deliveries(count), unbilled_deliveries:deliveries(count), paid_revenue:revenue(amount, status)')
+      .eq('all_deliveries.status', 'done')
+      .eq('unbilled_deliveries.status', 'done')
       .eq('unbilled_deliveries.billed', false)
       .eq('paid_revenue.status', 'paid')
       .order('created_at', { ascending: false })

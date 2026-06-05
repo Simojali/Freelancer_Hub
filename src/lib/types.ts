@@ -79,14 +79,23 @@ export function isGigUnpaid(p: Project): boolean {
   return (p.paid_amount ?? 0) < price
 }
 
+export type DeliveryStatus = 'planned' | 'done'
+
 export interface Delivery {
   id: string
   project_id: string
   description: string | null
+  /** For planned deliveries this is "planned for"; for done it's "delivered on". */
   delivered_at: string
   work_url: string | null
   billed: boolean
   revenue_id: string | null
+  /**
+   * 'planned' = queued work, not yet executed. UI labels these as "Up next".
+   * 'done'    = actually delivered. All historical rows default here.
+   * DB CHECK constraint forbids billed=true / revenue_id set when status='planned'.
+   */
+  status: DeliveryStatus
   created_at: string
 }
 
