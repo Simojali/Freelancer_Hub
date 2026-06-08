@@ -9,6 +9,7 @@ import { useSettings } from '@/hooks/useSettings'
 import { formatCurrency } from '@/lib/utils'
 import KpiCard from '@/components/dashboard/KpiCard'
 import EmptyState from '@/components/shared/EmptyState'
+import { Money } from '@/components/ui/money'
 
 // Donut palette — fallback when a service doesn't have an explicit color in DB
 const FALLBACK_COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f97316', '#eab308', '#22c55e', '#06b6d4', '#64748b']
@@ -80,21 +81,21 @@ export default function AnalyticsPage() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <KpiCard
               label="Total revenue"
-              value={formatCurrency(data.totals.totalRevenue, currency)}
-              sub={`${formatCurrency(data.totals.paidRevenue, currency)} paid · ${formatCurrency(data.totals.pendingRevenue, currency)} pending`}
+              value={<Money>{formatCurrency(data.totals.totalRevenue, currency)}</Money>}
+              sub={<><Money>{formatCurrency(data.totals.paidRevenue, currency)}</Money> paid · <Money>{formatCurrency(data.totals.pendingRevenue, currency)}</Money> pending</>}
               icon={BarChart3}
               iconColor="text-emerald-500"
             />
             <KpiCard
               label={`Avg per ${unitWord}`}
-              value={formatCurrency(data.totals.avgPerMonth, currency)}
+              value={<Money>{formatCurrency(data.totals.avgPerMonth, currency)}</Money>}
               sub={`across ${data.totals.monthsCount} ${unitLabel(data.totals.monthsCount)}`}
               icon={BarChart3}
               iconColor="text-blue-500"
             />
             <KpiCard
               label={`Best ${unitWord}`}
-              value={data.totals.bestMonth ? formatCurrency(data.totals.bestMonth.amount, currency) : '—'}
+              value={data.totals.bestMonth ? <Money>{formatCurrency(data.totals.bestMonth.amount, currency)}</Money> : '—'}
               sub={data.totals.bestMonth?.label ?? 'no data'}
               icon={Trophy}
               iconColor="text-amber-500"
@@ -107,7 +108,7 @@ export default function AnalyticsPage() {
                     {data.totals.yoy.pct > 0 ? '+' : ''}{data.totals.yoy.pct}%
                   </span>
                 }
-                sub={`vs ${formatCurrency(data.totals.yoy.prior, currency)} a year ago`}
+                sub={<>vs <Money>{formatCurrency(data.totals.yoy.prior, currency)}</Money> a year ago</>}
                 icon={data.totals.yoy.pct >= 0 ? TrendingUp : TrendingDown}
                 iconColor={data.totals.yoy.pct >= 0 ? 'text-emerald-500' : 'text-red-500'}
               />
@@ -182,7 +183,7 @@ export default function AnalyticsPage() {
                       >
                         <div className="flex items-center justify-between text-xs mb-1">
                           <span className="text-foreground group-hover:text-foreground truncate">{c.client_name}</span>
-                          <span className="text-muted-foreground shrink-0 ml-2">{formatCurrency(c.total, currency)}</span>
+                          <span className="text-muted-foreground shrink-0 ml-2">{<Money>{formatCurrency(c.total, currency)}</Money>}</span>
                         </div>
                         <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                           <div
@@ -248,7 +249,7 @@ export default function AnalyticsPage() {
                             <span className="text-foreground truncate">{meta?.name ?? entry.service}</span>
                           </div>
                           <div className="shrink-0 text-muted-foreground">
-                            <span className="font-medium text-foreground">{formatCurrency(entry.total, currency)}</span>
+                            <span className="font-medium text-foreground">{<Money>{formatCurrency(entry.total, currency)}</Money>}</span>
                             <span className="ml-1.5">{entry.pct}%</span>
                           </div>
                         </div>
@@ -265,7 +266,7 @@ export default function AnalyticsPage() {
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-sm font-semibold text-foreground uppercase tracking-wide">Productivity</h2>
               <span className="text-xs text-muted-foreground">
-                {data.totals.totalDeliveries} deliveries · {formatCurrency(data.totals.totalEarned, currency)} earned · avg {data.totals.avgDeliveriesPerMonth.toFixed(1)}/{granularity === 'daily' ? 'day' : 'mo'}
+                {data.totals.totalDeliveries} deliveries · {<Money>{formatCurrency(data.totals.totalEarned, currency)}</Money>} earned · avg {data.totals.avgDeliveriesPerMonth.toFixed(1)}/{granularity === 'daily' ? 'day' : 'mo'}
               </span>
             </div>
             <div className="bg-card border border-border rounded-lg p-5">

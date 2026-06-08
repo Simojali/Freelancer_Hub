@@ -5,6 +5,7 @@ import { Toaster } from 'sonner'
 import './index.css'
 import App from './App.tsx'
 import { ThemeProvider, useTheme } from '@/lib/theme'
+import { PrivacyProvider } from '@/lib/privacy'
 
 // Toaster pulls its own theme so sonner notifications match the rest of the chrome.
 function ThemedToaster() {
@@ -15,10 +16,12 @@ function ThemedToaster() {
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ThemeProvider>
-      <BrowserRouter>
-        <App />
-        <ThemedToaster />
-      </BrowserRouter>
+      <PrivacyProvider>
+        <BrowserRouter>
+          <App />
+          <ThemedToaster />
+        </BrowserRouter>
+      </PrivacyProvider>
     </ThemeProvider>
   </StrictMode>,
 )

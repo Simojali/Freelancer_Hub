@@ -5,6 +5,7 @@ import { cn, formatCurrency } from '@/lib/utils'
 import ServiceBadge from '@/components/shared/ServiceBadge'
 import { useSettings } from '@/hooks/useSettings'
 import DeliveryPeek from './DeliveryPeek'
+import { Money } from '@/components/ui/money'
 
 interface Props {
   project: Project
@@ -53,13 +54,13 @@ export default function RetainerRow({ project, onView, onBill, onEdit, onDelete,
 
         {/* Unit price */}
         {unitPrice > 0 && (
-          <span className="text-sm text-muted-foreground shrink-0">{formatCurrency(unitPrice, currency)} / unit</span>
+          <span className="text-sm text-muted-foreground shrink-0">{<Money>{formatCurrency(unitPrice, currency)}</Money>} / unit</span>
         )}
 
         {/* Unbilled deliveries & owed */}
         <div className="shrink-0 flex items-center gap-2">
           <span className={`text-sm font-semibold ${owed > 0 ? 'text-teal-600' : 'text-muted-foreground'}`}>
-            {delivered} unbilled → {formatCurrency(owed, currency)} owed
+            {delivered} unbilled → {<Money>{formatCurrency(owed, currency)}</Money>} owed
           </span>
           <button
             type="button"

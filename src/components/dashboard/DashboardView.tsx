@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { UserCheck, DollarSign, Wallet, Package as PackageIcon } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
 import { useSettings } from '@/hooks/useSettings'
+import { Money } from '@/components/ui/money'
 
 export default function DashboardView() {
   const { data, isLoading } = useDashboard()
@@ -63,7 +64,7 @@ export default function DashboardView() {
               </span>
             }
             sub={kpis.topClientThisMonth
-              ? `Top: ${kpis.topClientThisMonth.name} · ${formatCurrency(kpis.topClientThisMonth.amount, currency)} this month`
+              ? <>Top: {kpis.topClientThisMonth.name} · <Money>{formatCurrency(kpis.topClientThisMonth.amount, currency)}</Money> this month</>
               : kpis.activeClients > 0
                 ? `${kpis.activeClients} with open work`
                 : 'No active engagements'}
@@ -71,11 +72,11 @@ export default function DashboardView() {
             iconColor="text-blue-500"
             onClick={() => navigate('/clients?sort=owed_desc')}
           />
-          <KpiCard label="This Month" value={formatCurrency(kpis.monthlyRevenue, currency)} icon={DollarSign} iconColor="text-emerald-500" />
+          <KpiCard label="This Month" value={<Money>{formatCurrency(kpis.monthlyRevenue, currency)}</Money>} icon={DollarSign} iconColor="text-emerald-500" />
           <KpiCard
             label="Owed to you"
-            value={formatCurrency(kpis.retainerOwed + kpis.gigsOwed, currency)}
-            sub={`${formatCurrency(kpis.retainerOwed, currency)} retainers · ${formatCurrency(kpis.gigsOwed, currency)} gigs`}
+            value={<Money>{formatCurrency(kpis.retainerOwed + kpis.gigsOwed, currency)}</Money>}
+            sub={<><Money>{formatCurrency(kpis.retainerOwed, currency)}</Money> retainers · <Money>{formatCurrency(kpis.gigsOwed, currency)}</Money> gigs</>}
             icon={Wallet}
             iconColor="text-amber-500"
           />

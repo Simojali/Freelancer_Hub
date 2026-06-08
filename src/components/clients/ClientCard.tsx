@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Pencil, Trash2, ExternalLink, Mail } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
 import { useSettings } from '@/hooks/useSettings'
+import { Money } from '@/components/ui/money'
 
 export interface ClientStats {
   totalPaid: number
@@ -64,8 +65,8 @@ export default function ClientCard({ client, stats, onEdit, onDelete, onView }: 
         {stats && (
           <div className="grid grid-cols-3 gap-2 py-2 border-y border-border mb-3">
             <Stat label="Projects" value={`${stats.activeProjects}/${stats.totalProjects}`} hint="active / total" />
-            <Stat label="Paid" value={formatCurrency(stats.totalPaid, currency)} tone="positive" />
-            <Stat label="Owed" value={formatCurrency(stats.owed, currency)} tone={stats.owed > 0 ? 'warning' : 'muted'} />
+            <Stat label="Paid" value={<Money>{formatCurrency(stats.totalPaid, currency)}</Money>} tone="positive" />
+            <Stat label="Owed" value={<Money>{formatCurrency(stats.owed, currency)}</Money>} tone={stats.owed > 0 ? 'warning' : 'muted'} />
           </div>
         )}
 

@@ -3,6 +3,7 @@ import { formatCurrency, formatDate } from '@/lib/utils'
 import PaymentStatusBadge from '@/components/revenue/PaymentStatusBadge'
 import { useSettings } from '@/hooks/useSettings'
 import { useNavigate } from 'react-router-dom'
+import { Money } from '@/components/ui/money'
 
 interface Props {
   recentPayments: DashboardData['recentPayments']
@@ -31,7 +32,7 @@ export default function RecentPaymentsCard({ recentPayments }: Props) {
                 <div className="text-xs text-muted-foreground">{formatDate(r.payment_date)}</div>
               </div>
               <div className="flex items-center gap-2 shrink-0">
-                <span className="text-sm font-semibold text-foreground">{formatCurrency(Number(r.amount), currency)}</span>
+                <span className="text-sm font-semibold text-foreground">{<Money>{formatCurrency(Number(r.amount), currency)}</Money>}</span>
                 <PaymentStatusBadge status={r.status as PaymentStatus} />
               </div>
             </button>

@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import type { Delivery, Revenue } from '@/lib/types'
 import { formatCurrency, formatDate, cn } from '@/lib/utils'
 import { useSettings } from '@/hooks/useSettings'
+import { Money } from '@/components/ui/money'
 
 interface Props {
   projectId: string
@@ -91,7 +92,7 @@ export default function RetainerBillingHistory({ projectId, deliveries }: Props)
                   </span>
                 </div>
                 <span className="text-sm font-semibold text-foreground shrink-0">
-                  {formatCurrency(Number(rev.amount), currency)}
+                  {<Money>{formatCurrency(Number(rev.amount), currency)}</Money>}
                 </span>
               </button>
               {isExpanded && (

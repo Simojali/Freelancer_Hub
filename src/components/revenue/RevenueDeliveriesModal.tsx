@@ -5,6 +5,7 @@ import DeliveryList from '@/components/projects/DeliveryList'
 import type { Delivery, Revenue } from '@/lib/types'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { useSettings } from '@/hooks/useSettings'
+import { Money } from '@/components/ui/money'
 
 interface Props {
   open: boolean
@@ -41,7 +42,7 @@ export default function RevenueDeliveriesModal({ open, onClose, revenue }: Props
               {revenue.projects?.name ?? 'Unknown project'} · {formatDate(revenue.payment_date ?? '')}
             </div>
             <div className="font-semibold text-foreground">
-              {formatCurrency(Number(revenue.amount), currency)}
+              {<Money>{formatCurrency(Number(revenue.amount), currency)}</Money>}
             </div>
           </div>
         )}

@@ -7,6 +7,7 @@ import { useSettings } from '@/hooks/useSettings'
 import DeliveryLogForm from './DeliveryLogForm'
 import DeliveryList from './DeliveryList'
 import RetainerBillingHistory from './RetainerBillingHistory'
+import { Money } from '@/components/ui/money'
 
 interface Props {
   open: boolean
@@ -34,9 +35,9 @@ export default function RetainerDetailModal({ open, onClose, project, onDelivery
         {/* Owed display — only counts unbilled deliveries */}
         <div className="flex items-center justify-between bg-muted/40 rounded-lg px-4 py-3 mt-2">
           <span className="text-sm text-muted-foreground">
-            {unbilled.length} unbilled × {formatCurrency(unitPrice, currency)}
+            {unbilled.length} unbilled × {<Money>{formatCurrency(unitPrice, currency)}</Money>}
           </span>
-          <span className="text-xl font-bold text-teal-600">{formatCurrency(owed, currency)} owed</span>
+          <span className="text-xl font-bold text-teal-600">{<Money>{formatCurrency(owed, currency)}</Money>} owed</span>
         </div>
 
         {/* Log form */}
@@ -56,7 +57,7 @@ export default function RetainerDetailModal({ open, onClose, project, onDelivery
           onClick={onBill}
           disabled={unbilled.length === 0}
         >
-          {unbilled.length === 0 ? 'Nothing to bill' : `Bill ${formatCurrency(owed, currency)}`}
+          {unbilled.length === 0 ? 'Nothing to bill' : <>Bill <Money>{formatCurrency(owed, currency)}</Money></>}
         </Button>
 
         {/* Previous billing cycles — auto-hides when there's no history */}

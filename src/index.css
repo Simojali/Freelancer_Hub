@@ -128,3 +128,18 @@
     @apply font-sans;
     }
 }
+
+/* Privacy mode — blur every [data-private] element when the html node
+ * carries `.privacy-on`. Drives the "hide balances" toggle in the sidebar.
+ * The blur radius + select/pointer overrides obscure the value enough that
+ * a screen-share or photo can't reconstruct it.
+ */
+html.privacy-on [data-private] {
+  filter: blur(7px);
+  user-select: none;
+  pointer-events: none;
+  transition: filter 120ms ease;
+}
+html [data-private] {
+  transition: filter 120ms ease;
+}

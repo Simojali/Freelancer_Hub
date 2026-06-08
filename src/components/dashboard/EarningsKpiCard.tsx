@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Sparkles, ArrowUp, ArrowDown, Minus } from 'lucide-react'
 import { cn, formatCurrency } from '@/lib/utils'
 import type { DashboardData } from '@/lib/types'
+import { Money } from '@/components/ui/money'
 
 type Period = 'today' | 'yesterday' | 'week' | 'month30'
 
@@ -42,7 +43,7 @@ export default function EarningsKpiCard({ earnings, currency }: Props) {
   } else if (prior === 0) {
     trendNode = (
       <>
-        <span className="text-muted-foreground">{formatCurrency(0, currency)} {LABEL_FOR_PRIOR[period]} · </span>
+        <span className="text-muted-foreground">{<Money>{formatCurrency(0, currency)}</Money>} {LABEL_FOR_PRIOR[period]} · </span>
         <span className="text-emerald-600 inline-flex items-center gap-0.5"><ArrowUp className="w-3 h-3" />new</span>
       </>
     )
@@ -55,7 +56,7 @@ export default function EarningsKpiCard({ earnings, currency }: Props) {
         : <span className="text-muted-foreground inline-flex items-center gap-0.5"><Minus className="w-3 h-3" />flat</span>
     trendNode = (
       <>
-        <span className="text-muted-foreground">{formatCurrency(prior, currency)} {LABEL_FOR_PRIOR[period]} · </span>
+        <span className="text-muted-foreground">{<Money>{formatCurrency(prior, currency)}</Money>} {LABEL_FOR_PRIOR[period]} · </span>
         {arrow}
       </>
     )
@@ -89,7 +90,7 @@ export default function EarningsKpiCard({ earnings, currency }: Props) {
           <Sparkles className="w-4 h-4 text-emerald-500 shrink-0" />
         </div>
 
-        <div className="text-2xl font-semibold text-foreground">{formatCurrency(amount, currency)}</div>
+        <div className="text-2xl font-semibold text-foreground">{<Money>{formatCurrency(amount, currency)}</Money>}</div>
         <div className="text-xs text-muted-foreground mt-1 truncate">{trendNode}</div>
       </CardContent>
     </Card>

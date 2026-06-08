@@ -19,6 +19,7 @@ import CycleRow from './CycleRow'
 import { useBilledCycles, type BilledCycle } from '@/hooks/useBilledCycles'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 import type { SortKey } from '@/App'
+import { Money } from '@/components/ui/money'
 
 export type TabType = 'all' | 'retainer' | 'package' | 'gig'
 export type GroupBy = 'type' | 'client'
@@ -520,7 +521,7 @@ export default function ProjectsList({
             <AlertDialogTitle>Renew this package?</AlertDialogTitle>
             <AlertDialogDescription>
               Create a new package <strong>{renewTarget?.name} (Renewed)</strong> with the same
-              rate ({renewTarget?.total_units} units, {formatCurrency(renewTarget?.price ?? 0, currency)}).
+              rate ({renewTarget?.total_units} units, {<Money>{formatCurrency(renewTarget?.price ?? 0, currency)}</Money>}).
               The original will stay in your history.
             </AlertDialogDescription>
           </AlertDialogHeader>

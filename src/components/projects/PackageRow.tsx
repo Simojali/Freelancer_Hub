@@ -5,6 +5,7 @@ import { cn, formatCurrency } from '@/lib/utils'
 import ServiceBadge from '@/components/shared/ServiceBadge'
 import { useSettings } from '@/hooks/useSettings'
 import DeliveryPeek from './DeliveryPeek'
+import { Money } from '@/components/ui/money'
 
 function creditsColor(left: number, total: number): string {
   if (total === 0) return 'text-muted-foreground'
@@ -62,7 +63,7 @@ export default function PackageRow({ project, onView, onEdit, onDelete, onRenew,
 
         {/* Price */}
         {project.price != null && (
-          <span className="text-sm text-muted-foreground shrink-0">{formatCurrency(project.price, currency)}</span>
+          <span className="text-sm text-muted-foreground shrink-0">{<Money>{formatCurrency(project.price, currency)}</Money>}</span>
         )}
 
         {/* Credits */}

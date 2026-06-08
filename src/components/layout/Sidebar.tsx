@@ -1,7 +1,8 @@
 import { Link, useLocation } from 'react-router-dom'
 import { cn } from '@/lib/utils'
-import { LayoutDashboard, Users, UserCheck, FolderKanban, DollarSign, BarChart3, Settings } from 'lucide-react'
+import { LayoutDashboard, Users, UserCheck, FolderKanban, DollarSign, BarChart3, Settings, Eye, EyeOff } from 'lucide-react'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { usePrivacy } from '@/lib/privacy'
 
 const nav = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -14,6 +15,7 @@ const nav = [
 
 export default function Sidebar() {
   const pathname = useLocation().pathname
+  const { isPrivate, toggle: togglePrivacy } = usePrivacy()
 
   return (
     <aside className="w-56 shrink-0 border-r border-border bg-sidebar text-sidebar-foreground h-screen sticky top-0 flex flex-col">
@@ -41,8 +43,23 @@ export default function Sidebar() {
         })}
       </nav>
 
-      {/* Theme toggle + Settings link at bottom */}
+      {/* Privacy + theme toggles + Settings link at bottom */}
       <div className="px-3 py-3 border-t border-border space-y-2">
+        <button
+          type="button"
+          onClick={togglePrivacy}
+          aria-pressed={isPrivate}
+          title={isPrivate ? 'Show amounts' : 'Hide amounts'}
+          className={cn(
+            'flex items-center gap-3 w-full px-3 py-2 rounded-md text-sm transition-colors',
+            isPrivate
+              ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
+              : 'text-muted-foreground hover:text-foreground hover:bg-sidebar-accent/60',
+          )}
+        >
+          {isPrivate ? <EyeOff className="w-4 h-4 shrink-0" /> : <Eye className="w-4 h-4 shrink-0" />}
+          {isPrivate ? 'Amounts hidden' : 'Hide amounts'}
+        </button>
         <ThemeToggle />
         <Link
           to="/settings"

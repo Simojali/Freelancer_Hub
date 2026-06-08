@@ -12,6 +12,7 @@ import RevenueFormModal from './RevenueFormModal'
 import RevenueDeliveriesModal from './RevenueDeliveriesModal'
 import MonthlyChart from './MonthlyChart'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
+import { Money } from '@/components/ui/money'
 
 export default function RevenueTable() {
   const { revenue, isLoading, createRevenue, updateRevenue, deleteRevenue } = useRevenue()
@@ -34,8 +35,8 @@ export default function RevenueTable() {
 
       {/* Summary row */}
       <div className="flex items-center gap-6 text-sm">
-        <div><span className="text-muted-foreground">Total Paid: </span><span className="font-semibold text-foreground">{formatCurrency(totalPaid, currency)}</span></div>
-        <div><span className="text-muted-foreground">Pending: </span><span className="font-semibold text-amber-600">{formatCurrency(totalPending, currency)}</span></div>
+        <div><span className="text-muted-foreground">Total Paid: </span><span className="font-semibold text-foreground">{<Money>{formatCurrency(totalPaid, currency)}</Money>}</span></div>
+        <div><span className="text-muted-foreground">Pending: </span><span className="font-semibold text-amber-600">{<Money>{formatCurrency(totalPending, currency)}</Money>}</span></div>
         <div className="ml-auto">
           <Button size="sm" onClick={() => { setEditItem(null); setFormOpen(true) }}>
             <Plus className="w-4 h-4 mr-1" /> Log Payment
@@ -84,7 +85,7 @@ export default function RevenueTable() {
                 </td>
                 <td className="px-3 py-2.5"><ServiceBadge slug={item.service_type} /></td>
                 <td className="px-3 py-2.5 text-muted-foreground max-w-[200px] truncate">{item.description ?? '—'}</td>
-                <td className="px-3 py-2.5 text-right font-medium text-foreground">{formatCurrency(Number(item.amount), currency)}</td>
+                <td className="px-3 py-2.5 text-right font-medium text-foreground">{<Money>{formatCurrency(Number(item.amount), currency)}</Money>}</td>
                 <td className="px-3 py-2.5"><PaymentStatusBadge status={item.status} /></td>
                 <td className="px-3 py-2.5">
                   <div className="flex justify-end gap-1">

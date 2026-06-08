@@ -27,6 +27,7 @@ import {
   AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
   AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { Money } from '@/components/ui/money'
 
 type Tab = 'overview' | 'projects' | 'payments'
 
@@ -333,15 +334,15 @@ export default function ClientProfilePage() {
         />
         <KpiCard
           label="Total Paid"
-          value={formatCurrency(totalPaid, currency)}
+          value={<Money>{formatCurrency(totalPaid, currency)}</Money>}
           sub={`${revenue.filter(r => r.status === 'paid').length} payments`}
           icon={DollarSign}
           iconColor="text-emerald-500"
         />
         <KpiCard
           label="Owed"
-          value={formatCurrency(totalOwed, currency)}
-          sub={`${formatCurrency(retainerOwed, currency)} retainer · ${formatCurrency(gigsOwed, currency)} gigs`}
+          value={<Money>{formatCurrency(totalOwed, currency)}</Money>}
+          sub={<><Money>{formatCurrency(retainerOwed, currency)}</Money> retainer · <Money>{formatCurrency(gigsOwed, currency)}</Money> gigs</>}
           icon={Wallet}
           iconColor="text-amber-500"
         />
@@ -434,7 +435,7 @@ export default function ClientProfilePage() {
                     <div className="flex items-center justify-between px-1">
                       <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{label}</span>
                       <span className="text-xs font-medium text-foreground">
-                        {formatCurrency(monthTotal, currency)} · {items.length} payment{items.length !== 1 ? 's' : ''}
+                        {<Money>{formatCurrency(monthTotal, currency)}</Money>} · {items.length} payment{items.length !== 1 ? 's' : ''}
                       </span>
                     </div>
                     <PaymentList items={items} onViewDeliveries={setRevenueDeliveriesFor} currency={currency} />
@@ -528,7 +529,7 @@ export default function ClientProfilePage() {
             <AlertDialogTitle>Renew this package?</AlertDialogTitle>
             <AlertDialogDescription>
               Create a new package <strong>{renewTarget?.name} (Renewed)</strong> with the same
-              rate ({renewTarget?.total_units} units, {formatCurrency(renewTarget?.price ?? 0, currency)}).
+              rate ({renewTarget?.total_units} units, {<Money>{formatCurrency(renewTarget?.price ?? 0, currency)}</Money>}).
               The original will stay in your history.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -591,7 +592,7 @@ function PaymentList({ items, onViewDeliveries, currency }: PaymentListProps) {
             )}
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <span className="text-sm font-semibold text-foreground">{formatCurrency(Number(r.amount), currency)}</span>
+            <span className="text-sm font-semibold text-foreground">{<Money>{formatCurrency(Number(r.amount), currency)}</Money>}</span>
             <PaymentStatusBadge status={r.status as PaymentStatus} />
           </div>
         </div>

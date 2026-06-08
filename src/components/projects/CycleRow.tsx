@@ -4,6 +4,7 @@ import type { BilledCycle } from '@/hooks/useBilledCycles'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { useSettings } from '@/hooks/useSettings'
 import ServiceBadge from '@/components/shared/ServiceBadge'
+import { Money } from '@/components/ui/money'
 
 interface Props {
   cycle: BilledCycle
@@ -44,7 +45,7 @@ export default function CycleRow({ cycle, onView }: Props) {
 
       {/* Amount */}
       <span className="text-sm font-semibold text-foreground shrink-0">
-        {formatCurrency(cycle.amount, currency)}
+        {<Money>{formatCurrency(cycle.amount, currency)}</Money>}
       </span>
 
       {/* Paid date */}

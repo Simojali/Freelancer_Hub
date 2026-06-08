@@ -6,6 +6,7 @@ import { cn, formatCurrency, formatDate } from '@/lib/utils'
 import GigStatusBadge from './GigStatusBadge'
 import ServiceBadge from '@/components/shared/ServiceBadge'
 import { useSettings } from '@/hooks/useSettings'
+import { Money } from '@/components/ui/money'
 
 interface Props {
   project: Project
@@ -45,7 +46,7 @@ export default function GigRow({ project, onEdit, onDelete }: Props) {
 
       {/* Price */}
       {project.price != null && (
-        <span className="text-sm text-muted-foreground shrink-0">{formatCurrency(project.price, currency)}</span>
+        <span className="text-sm text-muted-foreground shrink-0">{<Money>{formatCurrency(project.price, currency)}</Money>}</span>
       )}
 
       {/* Status + Overdue + Unpaid */}

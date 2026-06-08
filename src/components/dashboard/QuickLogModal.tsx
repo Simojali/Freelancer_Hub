@@ -11,6 +11,7 @@ import DeliveryList from '@/components/projects/DeliveryList'
 import { formatCurrency, cn } from '@/lib/utils'
 import { ArrowRight, ArrowLeft } from 'lucide-react'
 import type { Project } from '@/lib/types'
+import { Money } from '@/components/ui/money'
 
 interface Props {
   open: boolean
@@ -121,7 +122,7 @@ export default function QuickLogModal({ open, onClose, onViewAll }: Props) {
         <div className="flex items-center gap-2 text-xs">
           <span className="px-1.5 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200 text-[10px] font-medium">RETAINER</span>
           <span className="text-muted-foreground">
-            {unbilled} unbilled · <span className="font-semibold text-teal-600">{formatCurrency(owed, currency)}</span> owed
+            {unbilled} unbilled · <span className="font-semibold text-teal-600">{<Money>{formatCurrency(owed, currency)}</Money>}</span> owed
           </span>
         </div>
       )
@@ -310,7 +311,7 @@ function ProjectTile({
     const owed = unbilled * Number(project.unit_price ?? 0)
     meta = unbilled > 0 ? (
       <span className="text-teal-600 font-medium">
-        {unbilled} unbilled · {formatCurrency(owed, currency)}
+        {unbilled} unbilled · {<Money>{formatCurrency(owed, currency)}</Money>}
       </span>
     ) : (
       <span className="text-muted-foreground">No unbilled work</span>

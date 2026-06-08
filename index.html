@@ -9,13 +9,16 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <script>
-      // Apply persisted theme before paint to avoid a flash.
+      // Apply persisted theme + privacy state before paint to avoid a flash.
       (function () {
         try {
           var t = localStorage.getItem('fh-theme') || 'system';
           var dark = t === 'dark' || (t === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
           if (dark) document.documentElement.classList.add('dark');
           document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+          if (localStorage.getItem('fh-privacy') === '1') {
+            document.documentElement.classList.add('privacy-on');
+          }
         } catch (_) {}
       })();
     </script>
