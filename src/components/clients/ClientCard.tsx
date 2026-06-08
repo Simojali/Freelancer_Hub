@@ -91,7 +91,7 @@ export default function ClientCard({ client, stats, onEdit, onDelete, onView }: 
   )
 }
 
-function Stat({ label, value, hint, tone = 'default' }: { label: string; value: string; hint?: string; tone?: 'default' | 'positive' | 'warning' | 'muted' }) {
+function Stat({ label, value, hint, tone = 'default' }: { label: string; value: React.ReactNode; hint?: string; tone?: 'default' | 'positive' | 'warning' | 'muted' }) {
   const valueClass =
     tone === 'positive' ? 'text-emerald-600' :
     tone === 'warning'  ? 'text-amber-600'   :
@@ -100,7 +100,7 @@ function Stat({ label, value, hint, tone = 'default' }: { label: string; value: 
   return (
     <div className="min-w-0">
       <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">{label}</div>
-      <div className={`text-sm font-semibold truncate ${valueClass}`} title={hint ?? value}>{value}</div>
+      <div className={`text-sm font-semibold truncate ${valueClass}`} title={hint}>{value}</div>
     </div>
   )
 }
